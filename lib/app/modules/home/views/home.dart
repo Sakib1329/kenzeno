@@ -10,7 +10,8 @@ import 'package:kenzeno/app/modules/home/views/recommendation.dart';
 
 import 'package:kenzeno/app/modules/home/views/resources.dart';
 import 'package:kenzeno/app/modules/home/views/search.dart';
-import 'package:kenzeno/app/modules/nutrition/views/nutrition.dart';
+import 'package:kenzeno/app/modules/nutrition/views/mealoverall.dart';
+
 
 import 'package:kenzeno/app/res/assets/asset.dart';
 
@@ -119,7 +120,7 @@ Get.to(ProgressTrackingScreen(),transition: Transition.rightToLeft);
               iconColor: AppColor.white,
               textColor: AppColor.white,
               onTap: () {
-Get.to(NutritionPage(),transition: Transition.rightToLeft);
+Get.to(MealIdeasPage(),transition: Transition.rightToLeft);
               },
             ),
 

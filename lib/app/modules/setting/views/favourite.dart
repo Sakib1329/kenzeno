@@ -1,28 +1,35 @@
+// favourite.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:kenzeno/app/res/assets/asset.dart'; // Ensure ImageAssets is here
+import 'package:kenzeno/app/res/assets/asset.dart';
 import 'package:kenzeno/app/widgets/backbutton_widget.dart';
 
+import '../../../constants/appconstants.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
-
 import '../controller/favouritecontroller.dart';
-
-import '../widgets/trainnigstep.dart'; // Import the new controller
+import '../widgets/trainnigstep.dart';
 
 class Favourite extends StatelessWidget {
-  // Initialize the controller
   final FavouriteController controller = Get.put(FavouriteController());
 
   Favourite({super.key});
 
+  // Safe preview text (prevents RangeError)
+  String _safePreview(String? text) {
+    if (text == null || text.isEmpty) return "No preview available";
+    if (text.length <= 100) return text.trim();
+    return "${text.substring(0, 100).trim()}...";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.black111214, // Set background to dark color
+      backgroundColor: AppColor.black111214,
       appBar: AppBar(
-        backgroundColor: AppColor.black111214, // Match background color
+        backgroundColor: AppColor.black111214,
         leading: const BackButtonBox(),
         title: Text(
           "Favorites",
@@ -35,7 +42,7 @@ class Favourite extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () {},
-            icon:  Icon(Icons.search, color: Colors.white,size: 25.h,),
+            icon: Icon(Icons.search, color: Colors.white, size: 25.h),
           ),
         ],
       ),
@@ -44,53 +51,81 @@ class Favourite extends StatelessWidget {
         children: [
           SizedBox(height: 10.h),
 
-          // --- Sort By Label ---
-      Padding(
-        padding:  EdgeInsets.symmetric(horizontal: 20.w),
-        child: Row(
-          children: [
-            Text(
-              'Sort By',
-              style: AppTextStyles.poppinsRegular.copyWith(
-                color: Colors.white,
-                fontSize: 12.sp,
-
-              ),
+          // Sort By + Tabs
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
+            child: Row(
+              children: [
+                Text(
+                  'Sort By',
+                  style: AppTextStyles.poppinsRegular.copyWith(
+                    color: Colors.white,
+                    fontSize: 12.sp,
+                  ),
+                ),
+                _buildCategoryTabBar(),
+              ],
             ),
-            _buildCategoryTabBar(),
-          ],
-        ),
-      ),
+          ),
 
           SizedBox(height: 20.h),
 
-          // --- Training Card List (Filtered by Tab) ---
+          // Main List
           Expanded(
             child: Obx(() {
-              final list = controller.filteredTrainings;
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColor.customPurple),
+                );
+              }
+
+              final list = controller.filteredFavorites;
+
               if (list.isEmpty) {
                 return Center(
                   child: Text(
-                    'No favorites in this category.',
-                    style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF),
+                    'No favorites yet.',
+                    style: AppTextStyles.poppinsRegular.copyWith(
+                      color: AppColor.gray9CA3AF,
+                      fontSize: 16.sp,
+                    ),
                   ),
                 );
               }
+
               return ListView.builder(
                 padding: EdgeInsets.zero,
                 itemCount: list.length,
                 itemBuilder: (context, index) {
                   final item = list[index];
-                  // Pass all required and optional parameters
+                  final obj = item.object;
+
+                  // Determine image URL
+
+                  final String imageUrl = obj.displayImage.isEmpty
+                      ? ImageAssets.img_16 // local fallback
+                      : (obj.displayImage.startsWith('http') || obj.displayImage.startsWith('assets/')
+                      ? obj.displayImage // use as-is
+                      : "${AppConstants.baseUrimage}/${obj.displayImage}");
+
+
                   return TrainingCardWidget(
-                    title: item['title'] as String,
-                    duration: item['duration'] as String,
-                    calories: item['calories'] as String,
-                    exercises: item['exercises'] as String,
-                    imagePath: item['imagePath'] as String,
-                    isVideo: item['isVideo'] as bool,
-                    type: item['type'] as String, // New mandatory parameter
-                    subtitle: item['subtitle'] as String?, // New optional parameter
+                    title: obj.title,
+                    duration: obj.isArticle
+                        ? "Read time · 5 min"
+                        : (obj.estimatedDuration ?? "Unknown duration"),
+                    calories: obj.isArticle
+                        ? "Article"
+                        : (obj.estimatedCalories ?? "Unknown calories"),
+                    exercises: obj.isArticle
+                        ? (obj.category?.toUpperCase() ?? "FITNESS")
+                        : "${obj.exerciseCount ?? 0} Exercises",
+                    imagePath: imageUrl,
+                    isVideo: !obj.isArticle,
+                    type: obj.isArticle ? 'Article' : 'Video',
+                    subtitle: obj.isArticle
+                        ? _safePreview(obj.content)
+                        : (obj.description ?? "No description"),
                   );
                 },
               );
@@ -101,45 +136,45 @@ class Favourite extends StatelessWidget {
     );
   }
 
-  // Widget builder for the tab bar
+  // Category Tabs (All / Workouts / Articles)
   Widget _buildCategoryTabBar() {
-    return Padding(
-      padding: EdgeInsets.only(left: 20.w),
-      child: Obx(() => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(controller.categories.length, (index) {
-            final isSelected = controller.selectedIndex.value == index;
-            final categoryName = controller.categories[index];
+    return Expanded(                                // ← THIS IS THE FIX
+      child: Padding(
+        padding: EdgeInsets.only(left: 20.w),
+        child: Obx(() => SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: List.generate(controller.categories.length, (i) {
+              final bool isSelected = controller.selectedIndex.value == i;
 
-            return Padding(
-              padding: EdgeInsets.only(right: 10.w),
-              child: GestureDetector(
-                onTap: () => controller.selectCategory(index),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 2.h),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColor.customPurple : Colors.white,
-                    borderRadius: BorderRadius.circular(30.r),
-                    border: Border.all(
-                      color: isSelected ? AppColor.customPurple : AppColor.white30,
-                      width: 1.w,
+              return Padding(
+                padding: EdgeInsets.only(right: 10.w),
+                child: GestureDetector(
+                  onTap: () => controller.selectCategory(i),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColor.customPurple : Colors.transparent,
+                      borderRadius: BorderRadius.circular(30.r),
+                      border: Border.all(
+                        color: isSelected ? AppColor.customPurple : AppColor.white30,
+                        width: 1.5,
+                      ),
                     ),
-                  ),
-                  child: Text(
-                    categoryName,
-                    style: AppTextStyles.poppinsRegular.copyWith(
-                      color: isSelected ? Colors.white : AppColor.customPurple,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
+                    child: Text(
+                      controller.categories[i],
+                      style: AppTextStyles.poppinsMedium.copyWith(
+                        color: isSelected ? Colors.white : AppColor.customPurple,
+                        fontSize: 12.sp,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }),
-        ),
-      )),
+              );
+            }),
+          ),
+        )),
+      ),
     );
   }
 }

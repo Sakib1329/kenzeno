@@ -40,7 +40,7 @@ class WorkoutDetailsScreen extends StatelessWidget {
           workout.difficulty, // Dynamic: Beginner / Intermediate / Advanced
           style: AppTextStyles.poppinsBold.copyWith(
             color: AppColor.white,
-            fontSize: 22.sp,
+            fontSize: 20.sp,
           ),
         ),
       ),

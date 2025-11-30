@@ -1,3 +1,5 @@
+// lib/app/modules/chat/views/chat_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -7,28 +9,17 @@ import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
 import '../controllers/chatcontroller.dart';
 
-
-// --- WIDGETS ---
-
 class MessageBubble extends StatelessWidget {
   final Message message;
-
   const MessageBubble({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
-    // Alignment and styling based on message source
     final isUser = message.isUser;
     final alignment = isUser ? Alignment.centerRight : Alignment.centerLeft;
     final bgColor = isUser ? AppColor.customPurple : AppColor.white;
     final textColor = isUser ? AppColor.white : AppColor.black111214;
     final timeColor = isUser ? AppColor.purpleCCC2FF : AppColor.gray9CA3AF;
-    final borderRadius = BorderRadius.only(
-      topLeft: Radius.circular(30.r),
-      topRight: Radius.circular(30.r),
-      bottomLeft: isUser ? Radius.circular(30.r) : Radius.circular(5.r),
-      bottomRight: isUser ? Radius.circular(5.r) : Radius.circular(30.r),
-    );
 
     return Align(
       alignment: alignment,
@@ -36,8 +27,8 @@ class MessageBubble extends StatelessWidget {
         padding: EdgeInsets.only(
           top: 8.h,
           bottom: 8.h,
-          left: isUser ? 50.w : 20.w, // Sender bubble padding
-          right: isUser ? 20.w : 50.w, // Receiver bubble padding
+          left: isUser ? 50.w : 20.w,
+          right: isUser ? 20.w : 50.w,
         ),
         child: Column(
           crossAxisAlignment: isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -47,7 +38,12 @@ class MessageBubble extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: borderRadius,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30.r),
+                  topRight: Radius.circular(30.r),
+                  bottomLeft: isUser ? Radius.circular(30.r) : Radius.circular(5.r),
+                  bottomRight: isUser ? Radius.circular(5.r) : Radius.circular(30.r),
+                ),
               ),
               child: Text(
                 message.text,
@@ -72,7 +68,6 @@ class MessageBubble extends StatelessWidget {
   }
 }
 
-
 class ChatScreen extends StatelessWidget {
   const ChatScreen({super.key});
 
@@ -80,10 +75,9 @@ class ChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ChatController controller = Get.put(ChatController());
 
-    // User/Assistant Header Data
     const String assistantName = 'Selma';
     const String assistantTagline = 'I\'m Here To Assist You';
-    const String assistantImagePath = ImageAssets.img_12; // Placeholder image
+    const String assistantImagePath = ImageAssets.img_12;
 
     return Scaffold(
       backgroundColor: AppColor.black111214,
@@ -93,41 +87,24 @@ class ChatScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-            // Back Button
             GestureDetector(
               onTap: () => Get.back(),
               child: const Icon(Icons.arrow_back_ios, color: AppColor.white, size: 24),
             ),
             SizedBox(width: 10.w),
-
-            // Assistant Avatar
             CircleAvatar(
               radius: 20.r,
-              backgroundImage: AssetImage(assistantImagePath),
-              // Fallback background if image is not present
+              backgroundImage: const AssetImage(assistantImagePath),
               backgroundColor: AppColor.customPurple,
-              child: Image.asset(assistantImagePath, errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 20.sp, color: AppColor.white)),
             ),
             SizedBox(width: 10.w),
-
-            // Assistant Info
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  assistantName,
-                  style: AppTextStyles.poppinsBold.copyWith(
-                    color: AppColor.white,
-                    fontSize: 18.sp,
-                  ),
-                ),
-                Text(
-                  assistantTagline,
-                  style: AppTextStyles.poppinsRegular.copyWith(
-                    color: AppColor.gray9CA3AF,
-                    fontSize: 12.sp,
-                  ),
-                ),
+                Text(assistantName,
+                    style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp)),
+                Text(assistantTagline,
+                    style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF, fontSize: 12.sp)),
               ],
             ),
           ],
@@ -135,22 +112,24 @@ class ChatScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Message List
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value && controller.messages.isEmpty) {
+                return const Center(child: CircularProgressIndicator(color: AppColor.customPurple));
+              }
+
               return ListView.builder(
-                reverse: true, // Show latest messages at the bottom
+                reverse: true, // newest at bottom
+                padding: EdgeInsets.symmetric(vertical: 10.h),
                 itemCount: controller.messages.length,
                 itemBuilder: (context, index) {
-                  // Display messages from newest to oldest
-                  final message = controller.messages.reversed.toList()[index];
+                  // Now correct: no double reverse!
+                  final message = controller.messages[index];
                   return MessageBubble(message: message);
                 },
               );
             }),
           ),
-
-          // Input Bar
           _buildInputBar(controller),
         ],
       ),
@@ -160,28 +139,19 @@ class ChatScreen extends StatelessWidget {
   Widget _buildInputBar(ChatController controller) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: AppColor.black111214,
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.black111214.withOpacity(0.5),
-            spreadRadius: 5.r,
-            blurRadius: 7.r,
-            offset: Offset(0, 3.h),
-          ),
-        ],
-      ),
+      decoration: const BoxDecoration(color: AppColor.black111214),
       child: Row(
         children: [
           Expanded(
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               decoration: BoxDecoration(
-                color: AppColor.white30, // Semi-transparent white background
+                color: AppColor.white30,
                 borderRadius: BorderRadius.circular(30.r),
               ),
               child: TextField(
                 controller: controller.textController,
+                enabled: !controller.isLoading.value,
                 textCapitalization: TextCapitalization.sentences,
                 style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.white, fontSize: 14.sp),
                 decoration: InputDecoration(
@@ -194,22 +164,22 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
           SizedBox(width: 10.w),
-
-          // Send Button
           GestureDetector(
-            onTap: controller.sendMessage,
+            onTap: controller.isLoading.value ? null : controller.sendMessage,
             child: Container(
               width: 50.w,
               height: 50.w,
               decoration: BoxDecoration(
-                color: AppColor.customPurple,
+                color: controller.isLoading.value ? AppColor.gray9CA3AF : AppColor.customPurple,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                Icons.send,
-                color: AppColor.white,
-                size: 24.sp,
-              ),
+              child: controller.isLoading.value
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+                  : const Icon(Icons.send, color: AppColor.white, size: 24),
             ),
           ),
         ],

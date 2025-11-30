@@ -1,61 +1,78 @@
-import 'package:get/get.dart';
+// lib/app/modules/chat/controllers/chatcontroller.dart
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import '../service/chat_service.dart';
 
 class Message {
   final String text;
   final String time;
-  final bool isUser; // true for current user, false for Selma
+  final bool isUser;
 
   Message({required this.text, required this.time, required this.isUser});
 }
 
 class ChatController extends GetxController {
-  // Observable list of messages
-  var messages = <Message>[].obs;
+  final ChatService _chatService = ChatService();
 
-  // Controller for the text input field
+  var messages = <Message>[].obs;
+  var isLoading = false.obs;
+
   final TextEditingController textController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
-    // Initial placeholder conversation
-    messages.addAll([
-      Message(text: 'Hello!', time: '09:00 AM', isUser: true),
-      Message(text: 'How can I help you today?', time: '09:00 AM', isUser: false),
-      Message(text: 'Could you please provide me with some more details about the issue you\'re experiencing?', time: '09:00 AM', isUser: false),
-      Message(text: 'Sure', time: '09:03 AM', isUser: true),
-      Message(text: 'Whenever I try to view my workout history, the app freezes and crashes.', time: '09:03 AM', isUser: true),
-      Message(text: 'I\'m sorry to hear that. Let me check that for you. Have you tried restarting the app or your device to see if that resolves the issue?', time: '09:05 AM', isUser: false),
-    ]);
+    loadConversation();
   }
 
-  // Method to send a new message
-  void sendMessage() {
-    final text = textController.text.trim();
-    if (text.isNotEmpty) {
-      final now = TimeOfDay.now();
-      final timeString = '${now.hourOfPeriod}:${now.minute.toString().padLeft(2, '0')} ${now.period == DayPeriod.am ? 'AM' : 'PM'}';
+  Future<void> loadConversation() async {
+    try {
+      isLoading.value = true;
+      final convo = await _chatService.getConversation();
 
-      final newMessage = Message(
-        text: text,
-        time: timeString,
-        isUser: true, // Assuming messages sent via this method are always from the user
+      final DateFormat formatter = DateFormat('h:mm a');
+
+      // Load messages: newest at top (index 0) → perfect for reverse: true
+      messages.assignAll(
+        convo.messages.reversed.map((m) {
+          return Message(
+            text: m.message,
+            time: formatter.format(m.timestamp.toLocal()),
+            isUser: m.isUser,
+          );
+        }).toList(),
       );
+    } catch (e) {
+      Get.snackbar("Error", "Could not load chat history", backgroundColor: Colors.red);
+      print("Load error: $e");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
-      messages.add(newMessage);
-      textController.clear();
+  Future<void> sendMessage() async {
+    final text = textController.text.trim();
+    if (text.isEmpty || isLoading.value) return;
 
-      // Simulate an automated response shortly after
-      Future.delayed(const Duration(seconds: 1), () {
-        messages.add(
-          Message(
-            text: "Thank you for the information. I'm looking into that now.",
-            time: timeString,
-            isUser: false,
-          ),
-        );
-      });
+    final now = DateTime.now();
+    final timeString = DateFormat('h:mm a').format(now);
+
+    // Show user message immediately
+    messages.insert(0, Message(text: text, time: timeString, isUser: true));
+    textController.clear();
+
+    isLoading.value = true;
+
+    try {
+      await _chatService.sendMessage(text);
+      await loadConversation(); // Refresh with real AI reply (even if it's an error)
+    } catch (e) {
+      Get.snackbar("Failed", "Could not send message", backgroundColor: Colors.red);
+      messages.removeAt(0); // remove failed message
+    } finally {
+      isLoading.value = false;
     }
   }
 

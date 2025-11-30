@@ -134,7 +134,7 @@ class _InputTextWidgetState extends State<InputTextWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: widget.height.h,
+      height: widget.height,
       width: widget.width.w,
       decoration: BoxDecoration(
         color: widget.backgroundColor,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get_state_manager/src/simple/get_state.dart';
+import 'package:kenzeno/app/modules/home/controllers/homecontroller.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
 import 'package:kenzeno/app/widgets/backbutton_widget.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -195,29 +198,49 @@ class ProgressTrackingScreen extends StatelessWidget {
 
   // --- 4. Activities Section ---
   Widget _buildActivitiesSection() {
-    final List<Map<String, String>> activities = [
-      {'title': 'Upper Body Workout', 'details': '120 Kcal • June 09', 'duration': '25 Mins'},
-      {'title': 'Pull Out', 'details': 'April 15 - 4:00 PM', 'duration': '30 Mins'},
-      {'title': 'Pull Out', 'details': 'April 15 - 4:00 PM', 'duration': '30 Mins'},
-    ];
+    return GetBuilder<HomeController>(
+      init: HomeController(),
+      builder: (controller) {
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Activities',
+                style: AppTextStyles.poppinsBold.copyWith(fontSize: 20.sp, color: AppColor.white),
+              ),
+              SizedBox(height: 15.h),
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Activities',
-            style: AppTextStyles.poppinsBold.copyWith(fontSize: 20.sp, color: AppColor.white),
+              Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator(color: AppColor.customPurple));
+                }
+
+                if (controller.activities.isEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.only(top: 20.h),
+                    child: Text(
+                      'No activities yet',
+                      style: TextStyle(color: AppColor.gray9CA3AF, fontSize: 16.sp),
+                    ),
+                  );
+                }
+
+                return Column(
+                  children: controller.activities.map((activity) {
+                    return _ActivityListItem(
+                      title: activity.name,
+                      details: activity.displayDetails,        // e.g. "500 KCal • 14 Nov"
+                      duration: activity.displayDuration,      // e.g. "50 Mins"
+                    );
+                  }).toList(),
+                );
+              }),
+            ],
           ),
-          SizedBox(height: 15.h),
-          ...activities.map((activity) => _ActivityListItem(
-            title: activity['title']!,
-            details: activity['details']!,
-            duration: activity['duration']!,
-          )).toList(),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -385,8 +408,9 @@ class _ActivityListItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: AppTextStyles.poppinsSemiBold.copyWith(fontSize: 16.sp, color: AppColor.white),
+                    style: AppTextStyles.poppinsSemiBold.copyWith(fontSize: 14.sp, color: AppColor.white),
                   ),
+                  SizedBox(height: 5.h,),
                   Text(
                     details,
                     style: AppTextStyles.poppinsRegular.copyWith(fontSize: 12.sp, color: AppColor.lavenderC7BDFC),
@@ -394,7 +418,7 @@ class _ActivityListItem extends StatelessWidget {
                 ],
               ),
             ),
-            // Right Duration
+          SizedBox(width: 15.w,),
             Row(
               children: [
             SvgPicture.asset(ImageAssets.svg30,color: Colors.white,height: 15.h,),

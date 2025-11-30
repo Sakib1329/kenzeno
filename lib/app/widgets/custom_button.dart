@@ -86,7 +86,7 @@ class CustomButton extends StatelessWidget {
     return InkWell(
       onTap: (onPress != null && !loading) ? () => onPress!() : null,
       child: Container(
-        height: height.h,
+        height: height,
         width: width.w,
         decoration: BoxDecoration(
           color: gradient == null ? buttonColor : null,

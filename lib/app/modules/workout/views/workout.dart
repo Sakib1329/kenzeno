@@ -69,7 +69,7 @@ class Workout extends StatelessWidget {
           'Workout',
           style: AppTextStyles.poppinsBold.copyWith(
             color: AppColor.white,
-            fontSize: 22.sp,
+            fontSize: 20.sp,
           ),
         ),
         actions: [

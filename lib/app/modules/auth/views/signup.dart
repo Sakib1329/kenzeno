@@ -99,7 +99,7 @@ class Signup extends StatelessWidget {
                     hintTextColor: AppColor.greyDark, // Placeholder text color
                     borderRadius: 10.r,
                     contentPadding: true,
-                    height: 40.0,
+                    height: 40.h,
                   ),
                   SizedBox(height: 14.h),
 
@@ -124,7 +124,7 @@ class Signup extends StatelessWidget {
                     hintTextColor: AppColor.greyDark,
                     borderRadius: 10.r,
                     contentPadding: true,
-                    height: 40.0,
+                    height: 40.h,
                   ),
                   SizedBox(height: 14.h),
 
@@ -150,7 +150,7 @@ class Signup extends StatelessWidget {
                     textColor: AppColor.greyDark,
                     hintTextColor: AppColor.greyDark,
                     borderRadius: 10.r,
-                    height: 40.0,
+                    height: 40.h,
                   ),
                   SizedBox(height: 14.h),
 
@@ -176,7 +176,7 @@ class Signup extends StatelessWidget {
                     textColor: AppColor.greyDark,
                     hintTextColor: AppColor.greyDark,
                     borderRadius: 10.r,
-                    height: 40.0,
+                    height: 40.h,
                   ),
                   SizedBox(height: 30.h),
 
@@ -186,7 +186,7 @@ class Signup extends StatelessWidget {
             loading: controller.isLoadingsignup.value,
             title: "Sign Up",
             fontSize: 16.sp,
-            height: 30.h, // Increased height for better visibility
+            height: 40.h, // Increased height for better visibility
             svgorimage: true,
             trailing: ImageAssets.svg3, // Assuming this is the right arrow icon
             fontFamily: 'WorkSans',

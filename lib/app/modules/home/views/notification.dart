@@ -1,27 +1,30 @@
+// lib/app/modules/notification/views/notification_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:kenzeno/app/res/assets/asset.dart';
-import 'package:kenzeno/app/widgets/backbutton_widget.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
+import '../../../res/assets/asset.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
-
+import '../../../widgets/backbutton_widget.dart';
 import '../controllers/notificationcontroller.dart';
-import '../models/notificationmodel.dart';
+import '../models/app_notification.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
 
-  // --- Helper Widgets ---
+  static const List<String> tabs = ['Reminders', 'System'];
 
   Widget _buildTabButton(NotificationController controller, String tabName) {
     final isSelected = tabName == controller.selectedTab.value;
     return GestureDetector(
       onTap: () => controller.selectTab(tabName),
       child: Container(
-        width: 150.w, // Fixed width as per screenshot design
-        padding: EdgeInsets.symmetric(vertical:8.h, horizontal: 10.w),
+        width: 150.w,
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
         decoration: BoxDecoration(
           color: isSelected ? AppColor.customPurple : AppColor.white,
           borderRadius: BorderRadius.circular(20.r),
@@ -39,34 +42,54 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationItem(NotificationItem item) {
-    final isReminder = item.isReminder;
+  // SMART DATE FORMATTER
+// Replace this function inside NotificationScreen
+  String _formatDateHeader(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final notificationDate = DateTime(date.year, date.month, date.day);
 
-    // Determine the icon/avatar widget
-    Widget leadingWidget;
-    if (isReminder) {
-      // Reminders tab uses a user avatar placeholder
-      leadingWidget = Container(
-        width: 50.w,
-        height: 50.w,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(15.r),
-          // Using a mock image asset for the avatar
-          image: const DecorationImage(
-            image: AssetImage(ImageAssets.img_12), // Reusing the chat avatar placeholder
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } else {
-      // System tab uses SVGs
-      leadingWidget = SvgPicture.asset(
-        item.iconPath,
+    if (notificationDate == today) return 'Today';
+    if (notificationDate == yesterday) return 'Yesterday';
 
-        height: 35.h,
-        width: 35.w,
-      );
+    final difference = today.difference(notificationDate).inDays;
+
+    if (difference <= 6) {
+      return '$difference days ago'; // 2 days ago, 3 days ago, etc.
     }
+
+    // Older than 6 days → show "Last week", "2 weeks ago", "Last month", etc.
+    if (difference <= 13) return 'Last week';
+    if (difference <= 20) return '2 weeks ago';
+    if (difference <= 27) return '3 weeks ago';
+    if (difference <= 35) return 'Last month';
+
+    // Very old → just show month name
+    return DateFormat('MMMM yyyy').format(date); // e.g. November 2025
+  }
+
+  Widget _buildNotificationItem(AppNotification item) {
+    final bool isReminder = item.notificationType == 'reminder';
+
+    Widget leadingWidget = isReminder
+        ? Container(
+      width: 50.w,
+      height: 50.w,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15.r),
+        image: const DecorationImage(
+          image: AssetImage(ImageAssets.img_12),
+          fit: BoxFit.cover,
+        ),
+      ),
+    )
+        : SvgPicture.asset(
+      ImageAssets.svg35,
+      height: 35.h,
+      width: 35.w,
+      color: AppColor.customPurple,
+    );
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
@@ -88,7 +111,7 @@ class NotificationScreen extends StatelessWidget {
             Stack(
               children: [
                 leadingWidget,
-                if (item.hasRedDot)
+                if (!item.isRead)
                   Positioned(
                     top: 0,
                     right: 0,
@@ -110,15 +133,25 @@ class NotificationScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.message,
+                    item.title,
                     style: AppTextStyles.poppinsSemiBold.copyWith(
                       color: AppColor.black232323,
                       fontSize: 14.sp,
                     ),
                   ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    item.message,
+                    style: AppTextStyles.poppinsRegular.copyWith(
+                      color: AppColor.gray9CA3AF,
+                      fontSize: 13.sp,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   SizedBox(height: 4.h),
                   Text(
-                    '${item.date} - ${item.time}',
+                    '${item.formattedDate} • ${item.formattedTime}',
                     style: AppTextStyles.poppinsRegular.copyWith(
                       color: AppColor.customPurple,
                       fontSize: 12.sp,
@@ -133,8 +166,6 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  // --- Main Build Method ---
-
   @override
   Widget build(BuildContext context) {
     final NotificationController controller = Get.put(NotificationController());
@@ -142,77 +173,64 @@ class NotificationScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColor.black111214,
       appBar: AppBar(
-        leading: BackButtonBox(),
+        backgroundColor: AppColor.black111214,
+        elevation: 0,
+        leading: const BackButtonBox(),
         title: Text(
           'Notifications',
-          style: AppTextStyles.poppinsBold.copyWith(
-            color: AppColor.white,
-            fontSize: 18.sp,
-          ),
+          style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp),
         ),
-        actions: [
-          IconButton(icon: const Icon(Icons.search, color: AppColor.white), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.notifications_none, color: AppColor.white), onPressed: () {}),
-          IconButton(icon: const Icon(Icons.person, color: AppColor.white), onPressed: () {}),
-          SizedBox(width: 10.w),
-        ],
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Tab Bar
+          // Tab Buttons
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            child: Obx(
-                  () => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildTabButton(controller, 'Reminders'),
-                  _buildTabButton(controller, 'System'),
-                ],
-              ),
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+            child: Obx(() => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: tabs.map((tab) => _buildTabButton(controller, tab)).toList(),
+            )),
           ),
-
-          SizedBox(height: 10.h),
 
           // Notification List
           Expanded(
             child: Obx(() {
-              final groupedList = controller.groupedNotifications;
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator(color: AppColor.customPurple));
+              }
 
-              if (groupedList.isEmpty) {
+              final groups = controller.groupedNotifications;
+
+              if (groups.isEmpty) {
                 return Center(
                   child: Text(
-                    'No notifications for this category.',
-                    style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF),
+                    'No notifications yet',
+                    style: TextStyle(color: AppColor.gray9CA3AF, fontSize: 16.sp),
                   ),
                 );
               }
 
               return ListView.builder(
                 padding: EdgeInsets.only(bottom: 20.h),
-                itemCount: groupedList.length,
-                itemBuilder: (context, groupIndex) {
-                  final group = groupedList[groupIndex];
+                itemCount: groups.length,
+                itemBuilder: (context, i) {
+                  final group = groups[i];
+                  final headerText = _formatDateHeader(group.items.first.createdAt);
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Date Header
                       Padding(
-                        padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 8.h),
+                        padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 10.h),
                         child: Text(
-                          group.dateHeader,
+                          headerText,
                           style: AppTextStyles.poppinsBold.copyWith(
                             color: AppColor.white,
                             fontSize: 18.sp,
                           ),
                         ),
                       ),
-
-                      // Notification Items in the group
-                      ...group.items.map((item) => _buildNotificationItem(item)).toList(),
+                      ...group.items.map(_buildNotificationItem).toList(),
                     ],
                   );
                 },

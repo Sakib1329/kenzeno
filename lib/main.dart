@@ -8,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:kenzeno/app/modules/auth/controllers/authcontroller.dart';
 import 'package:kenzeno/app/modules/home/controllers/navcontroller.dart';
 import 'package:kenzeno/app/modules/setting/controller/profilecontroller.dart';
+import 'package:kenzeno/app/modules/setting/service/setting_service.dart';
 import 'package:kenzeno/app/modules/setup/controllers/schedule_controller.dart';
 import 'package:kenzeno/app/modules/workout/controllers/workoutcontroller.dart';
 import 'package:kenzeno/app/modules/workout/services/workout_services.dart';
@@ -38,6 +39,7 @@ Get.put(ProfileController());
 Get.put(WorkoutService());
 Get.put(WorkoutController());
   Get.put(VideoCleanupHelper(), permanent: true);
+  Get.put(SettingService());
   runApp(const MyApp());
 }
 

@@ -2,12 +2,13 @@ import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
 
+import '../models/activity_model.dart';
 import '../models/article.dart';
 import '../models/workout_model.dart';
 import '../service/home_service.dart';
 
 class HomeController extends GetxController {
-  final HomeService articleService = Get.put(HomeService());
+  final HomeService _service = Get.put(HomeService());
   final selectedDay = 15.obs;
   RxBool isLoading = false.obs;
   var selectedArticle = Rxn<Article>();
@@ -19,6 +20,7 @@ class HomeController extends GetxController {
   void onInit() {
     fetchAllArticles();
     fetchWorkoutVideos();
+    fetchActivities();
     super.onInit();
   }
 
@@ -26,7 +28,7 @@ class HomeController extends GetxController {
   Future<void> fetchAllArticles() async {
     try {
       isLoading(true);
-      final fetchedArticles = await articleService.fetchArticles();
+      final fetchedArticles = await _service.fetchArticles();
       articles.assignAll(fetchedArticles);
     } catch (e) {
       print("Error fetching articles: $e");
@@ -38,7 +40,7 @@ class HomeController extends GetxController {
   Future<void> fetchArticleDetail(int id) async {
     try {
       isLoadingArticle(true);
-      final article = await articleService.fetchArticleById(id);
+      final article = await _service.fetchArticleById(id);
       selectedArticle.value = article;
     } catch (e) {
       selectedArticle.value = null;
@@ -57,7 +59,7 @@ class HomeController extends GetxController {
   Future<void> fetchWorkoutVideos() async {
     try {
       isLoadingWorkoutVideos(true);
-      final videos = await articleService.fetchWorkoutVideos();
+      final videos = await _service.fetchWorkoutVideos();
       workoutVideos.assignAll(videos);
     } catch (e) {
       print("Error loading workout videos: $e");
@@ -66,8 +68,19 @@ class HomeController extends GetxController {
       isLoadingWorkoutVideos(false);
     }
   }
+  var activities = <WorkoutActivity>[].obs;
 
-
+  Future<void> fetchActivities() async {
+    try {
+      isLoading.value = true;
+      final list = await _service.fetchTodayActivities();
+      activities.assignAll(list);
+    } catch (e) {
+      Get.snackbar("Error", "Failed to load activities");
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
 
 

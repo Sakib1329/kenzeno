@@ -2,21 +2,19 @@ import 'package:get/get.dart';
 
 class SetupController extends GetxController {
   // --- General Setup State ---
-  var selectedGender = ''.obs; // 'male' or 'female'
-  var selectedAge = 18.obs; // default age 18
+  var selectedGender = ''.obs;
+  var selectedAge = 18.obs;
 
-  // State for selected activity level
-  var selectedActivityLevel = ''.obs; // 'Beginner', 'Intermediate', or 'Advance'
+  var selectedActivityLevel = ''.obs;
 
-  // NEW: State for selected fitness goal
-  var selectedGoal = ''.obs; // E.g., 'lose_weight', 'ai_coach', 'gain_endurance'
 
-  // --- Weight State (Horizontal Ruler) ---
+  var selectedGoal = ''.obs;
+
   var weightUnit = 'kg'.obs;
   var weight = 70.0.obs; // Default weight
-  var hasScrolledWeight = false.obs; // Tracks interaction with weight ruler
+  var hasScrolledWeight = false.obs;
 
-  // --- Height State (Vertical Ruler) ---
+
   var heightUnit = 'cm'.obs;
   var height = 175.0.obs; // Default height (175 cm)
   var hasScrolledHeight = false.obs; // Tracks interaction with height ruler
@@ -35,9 +33,7 @@ class SetupController extends GetxController {
     selectedActivityLevel.value = level;
   }
 
-  // ------------------------------------------------------------------
-  // --- Weight Logic ---
-  // ------------------------------------------------------------------
+
 
   void toggleWeightUnit() {
     // Basic conversion logic (1 kg ≈ 2.20462 lbs)

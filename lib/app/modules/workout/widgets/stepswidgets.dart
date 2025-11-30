@@ -55,7 +55,7 @@ class TrainingStepWidget extends StatelessWidget {
                       step.exerciseName,
                       style: AppTextStyles.poppinsBold.copyWith(
                         color: AppColor.black111214,
-                        fontSize: 14.sp,
+                        fontSize: 12.sp,
                       ),
                     ),
                     SizedBox(height: 4.h),
