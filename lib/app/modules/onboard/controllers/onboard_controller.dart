@@ -6,14 +6,14 @@ import 'package:kenzeno/app/modules/home/views/navbar.dart';
 import 'package:kenzeno/app/modules/onboard/views/onboard1.dart';
 import 'package:kenzeno/app/modules/onboard/views/splashview.dart';
 
-
 class OnboardController extends GetxController{
+
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
     startTimer();
   }
+
   void startTimer() {
     Timer(const Duration(seconds: 5), routeUser);
   }

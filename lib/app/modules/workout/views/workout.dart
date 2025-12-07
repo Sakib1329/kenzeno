@@ -91,7 +91,7 @@ class Workout extends StatelessWidget {
 
           Expanded(
             child: Obx(() {
-              // Loading state
+
               if (controller.isLoading.value) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -114,9 +114,9 @@ class Workout extends StatelessWidget {
                       child: TrainingOfTheDayCard(
                         headtitle: "Trainning of the day",
                         title: mainWorkout.name,
-                        imagePath: mainWorkout.image.isNotEmpty
-                            ? mainWorkout.image
-                            : ImageAssets.img_16,
+                      imagePath: mainWorkout.image?.isNotEmpty == true
+                      ? mainWorkout.image!
+                        : ImageAssets.img_16,
                         duration: mainWorkout.estimatedDuration,
                         calories: mainWorkout.estimatedCalories,
                         exercises: "${mainWorkout.exerciseCount} Exercises",
@@ -157,7 +157,9 @@ class Workout extends StatelessWidget {
                         duration: workout.estimatedDuration,
                         calories: workout.estimatedCalories,
                         exercises: "${workout.exerciseCount} Exercises",
-                        imagePath: workout.image.isNotEmpty ? workout.image : ImageAssets.img_16,
+                       imagePath: workout.image != null && workout.image!.isNotEmpty
+                          ? workout.image!
+                              : ImageAssets.img_12,
                         type: 'Workout',
                         isVideo: false,
                         onTap: () => controller.loadWorkoutDetail(workout.id),

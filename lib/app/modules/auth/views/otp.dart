@@ -36,9 +36,7 @@ class OtpVerification extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          // ------------------------
-          // Background Image
-          // ------------------------
+
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
@@ -48,9 +46,6 @@ class OtpVerification extends StatelessWidget {
             ),
           ),
 
-          // ------------------------
-          // Main Content
-          // ------------------------
           SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) => SingleChildScrollView(
@@ -116,13 +111,12 @@ class OtpVerification extends StatelessWidget {
                         // Verify Button
                         Obx(() => CustomButton(
                           onPress: () async {
-                            Get.to(Passconfirmation(),
-                                transition: Transition.rightToLeft);
+
                             controller.activateAccount(
                                 otpController.text.trim());
                           },
                           title: 'Verify',
-                          height: 30.h,
+                          height: 40.h,
                           fontSize: 18.sp,
                           loading: controller.isLoadingverify.value,
                           fontFamily: 'WorkSans',

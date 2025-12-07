@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:kenzeno/app/modules/workout/views/workoutdetails.dart';
 import 'package:video_player/video_player.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
@@ -14,7 +15,8 @@ import '../controllers/workoutcontroller.dart';
 import '../model/workoutmodel.dart';
 
 class ExerciseDetailsScreen extends StatefulWidget {
-  const ExerciseDetailsScreen({super.key});
+  final workutid;
+  const ExerciseDetailsScreen({super.key, this.workutid});
 
   @override
   State<ExerciseDetailsScreen> createState() => _ExerciseDetailsScreenState();
@@ -28,6 +30,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
   final RxInt remainingTime = 0.obs;
   final RxBool showCompleteButton = false.obs;
   final RxBool showInfoCard = false.obs;
+  final RxBool hasTimerStarted = false.obs;
 
   late AnimationController slideController;
   late AnimationController playAnimController;
@@ -41,31 +44,18 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
   void initState() {
     super.initState();
 
-    slideController =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    slideController = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
+    playAnimController = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
 
-    playAnimController =
-        AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-
-    slideAnimation = Tween<Offset>(
-        begin: const Offset(0, 0.2), end: Offset.zero)
+    slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
         .animate(CurvedAnimation(parent: slideController, curve: Curves.easeOut));
 
-    videoSlideUp = Tween<Offset>(
-      begin: const Offset(0, 0.18),
-      end: Offset.zero,
-    ).animate(
+    videoSlideUp = Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
       CurvedAnimation(parent: playAnimController, curve: Curves.easeOut),
     );
 
-    statsSlideDown = Tween<Offset>(
-      begin: const Offset(0, -0.20),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: playAnimController,
-        curve: Curves.easeOutBack,
-      ),
+    statsSlideDown = Tween<Offset>(begin: const Offset(0, -0.20), end: Offset.zero).animate(
+      CurvedAnimation(parent: playAnimController, curve: Curves.easeOutBack),
     );
 
     statsFadeIn = Tween<double>(begin: 0.2, end: 1).animate(
@@ -82,6 +72,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
   }
 
   void startTimer(int seconds) async {
+    hasTimerStarted.value = true;        // ← ADD THIS LINE!
     remainingTime.value = seconds;
     showCompleteButton.value = false;
     showInfoCard.value = true;
@@ -105,12 +96,10 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
     if (controller.value.isPlaying) {
       controller.pause();
       isPlaying.value = false;
-
       playAnimController.reverse();
     } else {
       controller.play();
       isPlaying.value = true;
-
       playAnimController.forward();
       if (remainingTime.value == 0) startTimer(exercise.durationSeconds);
     }
@@ -127,10 +116,8 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
         leading: const BackButtonBox(),
         centerTitle: true,
         title: Text(
-          Get.find<WorkoutController>().selectedWorkoutDetail.value?.difficulty ??
-              'Exercise',
-          style: AppTextStyles.poppinsBold
-              .copyWith(color: AppColor.white, fontSize: 22.sp),
+          Get.find<WorkoutController>().selectedWorkoutDetail.value?.difficulty ?? 'Exercise',
+          style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 22.sp),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -140,6 +127,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
           SingleChildScrollView(
             child: Column(
               children: [
+                // Video / Thumbnail
                 Obx(() {
                   final controller = videoController.value;
                   if (controller != null && controller.value.isInitialized) {
@@ -153,7 +141,6 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
                       ),
                     );
                   }
-
                   return SlideTransition(
                     position: videoSlideUp,
                     child: AnimatedScale(
@@ -166,23 +153,40 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
 
                 SizedBox(height: 30.h),
 
-                // Exercise info / timer
+
                 _buildExerciseInfo(exercise),
 
-                SlideTransition(
-                  position: statsSlideDown,
-                  child: FadeTransition(
-                    opacity: statsFadeIn,
-                    child: _buildColorfulStatItems(exercise),
-                  ),
-                ),
 
-                SizedBox(height: 80.h),
+
+                Obx(() {
+
+                  final bool shouldShowStats = hasTimerStarted.value
+                      ? remainingTime.value > 0
+                      : true;
+
+                  return AnimatedOpacity(
+                    opacity: shouldShowStats ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 1100),
+                    curve: Curves.easeOutQuart,
+                    child: Offstage(
+                      offstage: !shouldShowStats,
+                      child: SlideTransition(
+                        position: statsSlideDown,
+                        child: FadeTransition(
+                          opacity: statsFadeIn,
+                          child: _buildColorfulStatItems(exercise),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+
+                SizedBox(height: 100.h),
               ],
             ),
           ),
 
-          // Complete button
+          // Complete Exercise Button — fades in when done
           Obx(() {
             if (!showInfoCard.value) return const SizedBox();
 
@@ -195,29 +199,32 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
                 child: Container(
                   margin: EdgeInsets.all(20.w),
                   padding: EdgeInsets.all(24.r),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Obx(() => AnimatedOpacity(
-                    opacity: showCompleteButton.value ? 1 : 0,
-                    duration: const Duration(milliseconds: 500),
+                  child: AnimatedOpacity(
+                    opacity: showCompleteButton.value ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 1000),
+                    curve: Curves.easeOut,
                     child: Visibility(
                       visible: showCompleteButton.value,
                       child: ElevatedButton(
-                        onPressed: () => Get.back(result: "completed"),
+                        onPressed: ()async{
+                          Get.off(WorkoutDetailsScreen());
+                          await Get.find<WorkoutController>().trackWorkoutProgress(userExerciseId: exercise.id,userWorkoutId: widget.workutid);
+
+                        },
+
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColor.customPurple,
-                          padding: EdgeInsets.symmetric(
-                              vertical: 16.h, horizontal: 40.w),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.r)),
+                          padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 40.w),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.r)),
                         ),
-                        child: Text("Complete Exercise",
-                            style: AppTextStyles.poppinsBold
-                                .copyWith(fontSize: 16.sp)),
+                        child: Text(
+                          "Complete Exercise",
+                          style: AppTextStyles.poppinsBold.copyWith(fontSize: 16.sp, color: Colors.white),
+                        ),
                       ),
                     ),
-                  )),
+                  ),
                 ),
               ),
             );
@@ -257,17 +264,8 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Image.asset(
-              ImageAssets.img_12,
-              width: double.infinity,
-              height: 300.h,
-              fit: BoxFit.cover,
-            ),
-            Container(
-              width: double.infinity,
-              height: 300.h,
-              color: Colors.black.withOpacity(0.4),
-            ),
+            Image.asset(ImageAssets.img_12, width: double.infinity, height: 300.h, fit: BoxFit.cover),
+            Container(width: double.infinity, height: 300.h, color: Colors.black.withOpacity(0.4)),
             isVideoLoading.value
                 ? const CircularProgressIndicator(color: Colors.white)
                 : GestureDetector(
@@ -279,8 +277,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
                   color: AppColor.customPurple.withOpacity(0.95),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.play_arrow,
-                    color: Colors.white, size: 50.sp),
+                child: Icon(Icons.play_arrow, color: Colors.white, size: 50.sp),
               ),
             ),
           ],
@@ -304,8 +301,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
             ? Text(
           "${remainingTime.value}s",
           key: ValueKey('timer_${remainingTime.value}'),
-          style: AppTextStyles.poppinsBold
-              .copyWith(fontSize: 48.sp, color: AppColor.customPurple),
+          style: AppTextStyles.poppinsBold.copyWith(fontSize: 48.sp, color: AppColor.customPurple),
           textAlign: TextAlign.center,
         )
             : Column(
@@ -314,8 +310,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
             Text(
               exercise.exerciseName,
               textAlign: TextAlign.center,
-              style: AppTextStyles.poppinsBold
-                  .copyWith(color: Colors.white, fontSize: 22.sp),
+              style: AppTextStyles.poppinsBold.copyWith(color: Colors.white, fontSize: 22.sp),
             ),
             SizedBox(height: 8.h),
             Text(
@@ -324,9 +319,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
                   : "No description available.",
               textAlign: TextAlign.center,
               style: AppTextStyles.poppinsRegular.copyWith(
-                  color: Colors.white.withOpacity(0.8),
-                  fontSize: 12.sp,
-                  height: 1.6),
+                  color: Colors.white.withOpacity(0.8), fontSize: 12.sp, height: 1.6),
             ),
           ],
         ),
@@ -339,20 +332,14 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
     child: Container(
       padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 16.w),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF7B61FF),
-            Color(0xFF2A9DFF),
-            Color(0xFF09C6F9),
-          ],
-        ),
+        gradient: const LinearGradient(colors: [
+          Color(0xFF7B61FF),
+          Color(0xFF2A9DFF),
+          Color(0xFF09C6F9),
+        ]),
         borderRadius: BorderRadius.circular(30.r),
         boxShadow: [
-          BoxShadow(
-            color: Colors.blueAccent.withOpacity(0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          )
+          BoxShadow(color: Colors.blueAccent.withOpacity(0.5), blurRadius: 20, offset: const Offset(0, 10))
         ],
       ),
       child: Row(
@@ -371,9 +358,7 @@ class _ExerciseDetailsScreenState extends State<ExerciseDetailsScreen>
     children: [
       SvgPicture.asset(icon, height: 24.h, color: Colors.white),
       SizedBox(width: 6.w),
-      Text(text,
-          style: AppTextStyles.poppinsMedium
-              .copyWith(fontSize: 13.sp, color: Colors.white)),
+      Text(text, style: AppTextStyles.poppinsMedium.copyWith(fontSize: 13.sp, color: Colors.white)),
     ],
   );
 

@@ -252,7 +252,7 @@ class PreviewScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding:  EdgeInsets.all(16.w),
             child: CustomButton(
               onPress: () async {
                 final CustomCameraController controller = Get.find();
@@ -266,8 +266,8 @@ Get.to(FillProfilePage(),transition: Transition.rightToLeft);
               },
               title: "Continue",
               fontSize: 16,
-              height: 30.h,
-width: 100.w,
+              height: 40.h,
+width: 120.w,
               fontFamily: 'WorkSans',
               radius: 12.r,
               fontWeight: FontWeight.w700,

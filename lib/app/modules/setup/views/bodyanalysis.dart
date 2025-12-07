@@ -126,7 +126,7 @@ class Bodyanalysis extends StatelessWidget {
                   },
                   title: "Got it,lets scan",
                   fontSize: 14.sp,
-                  height: 35.h,
+                  height: 45.h,
 svgorimage: true,
                   trailing: ImageAssets.svg12,
                   fontFamily: 'WorkSans',

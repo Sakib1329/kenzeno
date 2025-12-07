@@ -102,4 +102,49 @@ class WorkoutService extends GetxService {
       throw Exception("Failed to load workout details");
     }
   }
+
+
+
+  Future<void> trackProgress({
+  required int userWorkoutId,
+  int? userExerciseId, // optional – if tracking a specific exercise
+  }) async {
+  final token = box.read("loginToken");
+  if (token == null) throw Exception("Login required");
+
+  final url = Uri.parse("${AppConstants.baseUrl}/workouts/track-progress/");
+
+  final Map<String, dynamic> payload = {
+  "user_workout_id": userWorkoutId,
+  if (userExerciseId != null) "user_exercise_id": userExerciseId,
+  };
+
+  print("Tracking Progress → POST $url");
+  print("Payload: $payload");
+
+  final response = await http.post(
+  url,
+  headers: {
+  "Authorization": "Bearer $token",
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  },
+  body: jsonEncode(payload),
+  );
+
+  print("Track Progress Response: ${response.statusCode}");
+  print("Response Body: ${response.body}");
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+  // Success – optionally return parsed data
+  return;
+  } else if (response.statusCode == 401) {
+  throw Exception("Unauthorized – Please login again");
+  } else if (response.statusCode == 400) {
+  final error = jsonDecode(response.body);
+  throw Exception(error['detail'] ?? error['error'] ?? "Invalid request");
+  } else {
+  throw Exception("Failed to track progress: ${response.statusCode}");
+  }
+  }
 }

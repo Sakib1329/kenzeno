@@ -61,7 +61,7 @@ class ChooseSchedulePage extends StatelessWidget {
                   },
                   title: "Continue",
                   fontSize: 16.sp,
-                  height: 35.h,
+                  height: 45.h,
                   svgorimage: true,
                   trailing: ImageAssets.svg3,
                   fontFamily: 'WorkSans',
@@ -89,7 +89,8 @@ class ChooseSchedulePage extends StatelessWidget {
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Text(
-            'Schedule-workout',
+            'Schedule workout',
+            // ← fixed typo
             style: AppTextStyles.poppinsSemiBold.copyWith(
               color: Colors.white,
               fontSize: 18.sp,
@@ -97,28 +98,29 @@ class ChooseSchedulePage extends StatelessWidget {
           ),
         ),
         SizedBox(height: 20.h),
-        Padding(
+
+        // ← NEW: scrollable row
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Obx(
                 () => Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // remove MainAxisAlignment.spaceBetween
               children: controller.days.map((day) {
-                final bool isActive = controller.currentDay.value == day;
-                final bool hasTime = controller.hasSchedule(day);
+                final bool isSelected = controller.isDaySelected(day);
 
                 return GestureDetector(
-                  onTap: () => controller.selectDay(day),
+                  onTap: () => controller.toggleDay(day),
                   child: Container(
-                    width: 40.r,
-                    height: 40.r,
+                    width: 48.r,
+                    height: 48.r,
+                    margin: EdgeInsets.only(right: 12.w), // nice spacing
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isActive
-                          ? AppColor.customPurple
-                          : Colors.transparent,
+                      color: isSelected ? AppColor.customPurple : Colors.transparent,
                       border: Border.all(
-                        color: hasTime
-                            ? Colors.green
+                        color: isSelected
+                            ? AppColor.customPurple
                             : AppColor.gray9CA3AF,
                         width: 2.w,
                       ),
@@ -127,10 +129,8 @@ class ChooseSchedulePage extends StatelessWidget {
                       child: Text(
                         day,
                         style: AppTextStyles.poppinsSemiBold.copyWith(
-                          color: isActive
-                              ? Colors.white
-                              : AppColor.gray9CA3AF,
-                          fontSize: 14.sp,
+                          color: isSelected ? Colors.white : AppColor.gray9CA3AF,
+                          fontSize: 16.sp,
                         ),
                       ),
                     ),

@@ -83,6 +83,14 @@ class ImageAssets {
   static const String svg61 = 'assets/icons/svg61.svg';
   static const String svg62 = 'assets/icons/svg62.svg';
   static const String svg63 = 'assets/icons/svg63.svg';
+  static const String svg64 = 'assets/icons/svg64.svg';
+  static const String svg65 = 'assets/icons/svg65.svg';
+  static const String svg66 = 'assets/icons/svg66.svg';
+  static const String svg67 = 'assets/icons/svg67.svg';
+  static const String svg68 = 'assets/icons/svg68.svg';
+  static const String svg69 = 'assets/icons/svg69.svg';
+  static const String svg70 = 'assets/icons/svg70.svg';
+
 
   static const String img = 'assets/images/img.png';
 

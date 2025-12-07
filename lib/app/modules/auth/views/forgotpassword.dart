@@ -13,7 +13,7 @@ import '../../../widgets/textfield.dart';
 
 
 class ForgotPassword extends StatelessWidget {
-  // Using Get.find() assumes the AuthController is initialized elsewhere
+
   final Authcontroller controller = Get.find();
 
   ForgotPassword({super.key});

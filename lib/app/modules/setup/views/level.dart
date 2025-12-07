@@ -130,7 +130,7 @@ Get.to(Bodyanalysis(),transition: Transition.rightToLeft);
                 },
                 title: "Continue",
                 fontSize: 16.sp,
-                height: 35.h, // Increased height for better visibility
+                height: 45.h, // Increased height for better visibility
                 svgorimage: true,
                 trailing: ImageAssets.svg3,
                 fontFamily: 'WorkSans',

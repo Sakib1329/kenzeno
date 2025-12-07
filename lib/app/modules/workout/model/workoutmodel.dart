@@ -1,4 +1,5 @@
 // lib/models/workout.dart
+
 class UserExercise {
   final int id;
   final String exerciseName;
@@ -27,14 +28,14 @@ class UserExercise {
   factory UserExercise.fromJson(Map<String, dynamic> json) {
     return UserExercise(
       id: json['id'],
-      exerciseName: json['exercise_name'],
+      exerciseName: json['exercise_name'] ?? 'Unnamed Exercise',
       exerciseDescription: json['exercise_description'] ?? '',
-      videoUrl: json['video'],
-      sets: json['sets'],
-      reps: json['reps'],
-      durationSeconds: json['duration_seconds'],
-      restTime: json['rest_time'],
-      order: json['order'],
+      videoUrl: json['video'], // can be null
+      sets: json['sets'] ?? 0,
+      reps: json['reps'] ?? 0,
+      durationSeconds: json['duration_seconds'] ?? 0,
+      restTime: json['rest_time'] ?? 60,
+      order: json['order'] ?? 0,
       notes: json['notes'] ?? '',
     );
   }
@@ -44,35 +45,35 @@ class Workout {
   final int id;
   final String name;
   final String description;
+  final String? image;                    // ← was String, now String? (null in API)
   final String estimatedDuration;
   final String estimatedCalories;
   final int exerciseCount;
   final String difficulty;
-  final String image;
-  final List<UserExercise>? exercises;
+  final List<UserExercise>? exercises;    // ← can be null if not loaded
 
   Workout({
     required this.id,
     required this.name,
     required this.description,
+    this.image,
     required this.estimatedDuration,
     required this.estimatedCalories,
     required this.exerciseCount,
     required this.difficulty,
-    required this.image,
     this.exercises,
   });
 
   factory Workout.fromJson(Map<String, dynamic> json) {
     return Workout(
       id: json['id'],
-      name: json['name'],
+      name: json['name'] ?? 'Untitled Workout',
       description: json['description'] ?? '',
+      image: json['image'], // ← now accepts null
       estimatedDuration: json['estimated_duration'] ?? 'N/A',
       estimatedCalories: json['estimated_calories'] ?? 'N/A',
       exerciseCount: json['exercise_count'] ?? 0,
-      difficulty: json['difficulty'] ?? 'Beginner',
-      image: json['image'] ?? '',
+      difficulty: (json['difficulty'] ?? 'beginner').toLowerCase(),
       exercises: json['user_exercises'] != null
           ? (json['user_exercises'] as List)
           .map((e) => UserExercise.fromJson(e))

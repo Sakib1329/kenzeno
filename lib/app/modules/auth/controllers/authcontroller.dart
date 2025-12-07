@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:kenzeno/app/modules/auth/views/otp.dart';
 import 'package:kenzeno/app/modules/home/views/navbar.dart';
+import 'package:kenzeno/app/modules/setup/views/setup.dart';
 
 import '../../../constants/appconstants.dart';
 
@@ -18,6 +19,7 @@ import '../../../res/fonts/textstyle.dart';
 import '../models/signupmodel.dart';
 import '../models/usermodel.dart';
 import '../services/auth_service.dart';
+import '../views/passconfirmation.dart';
 
 
 
@@ -341,7 +343,7 @@ Get.offAll(OtpVerification(email: emailController.text, fromPage: "signup"));
               style: AppTextStyles.workSansRegular.copyWith(color: AppColor.background),
             ),
           );
-
+Get.offAll(Setup(),transition: Transition.rightToLeft);
         } else {
           throw 'Account activation failed';
         }
@@ -362,7 +364,8 @@ Get.offAll(OtpVerification(email: emailController.text, fromPage: "signup"));
               style: AppTextStyles.workSansRegular.copyWith(color: AppColor.background),
             ),
           );
-
+          Get.to(Passconfirmation(),
+              transition: Transition.rightToLeft);
         } else {
           throw 'Account activation failed';
         }

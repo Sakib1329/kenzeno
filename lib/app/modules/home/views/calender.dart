@@ -1,3 +1,7 @@
+// lib/app/modules/gallery/views/calender.dart (or wherever you have it)
+
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,6 +12,7 @@ import 'package:kenzeno/app/modules/home/views/progressgallery.dart';
 import '../../../res/assets/asset.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
+import '../controllers/calender_controller.dart';
 
 
 enum ProgressType {
@@ -31,15 +36,6 @@ enum ProgressType {
     }
   }
 }
-
-class DailyProgress {
-  final DateTime date;
-  final Set<ProgressType> types;
-
-  DailyProgress({required this.date, required this.types});
-}
-
-// Data model for meal items
 class Meal {
   final String title;
   final String description;
@@ -50,38 +46,32 @@ class Meal {
   Meal({required this.title, required this.description, required this.time, required this.calories, required this.image});
 }
 
-
+// Color map used across the file
 final Map<String, Color> colorMap = {
   'customPurple': AppColor.customPurple,
   'cyan06B6D4': AppColor.cyan06B6D4,
   'green22C55E': AppColor.green22C55E,
 };
-// ----------------------------------------------------------------------
 
-// --------------------------- MAIN PAGE (NutriTrackPage) -----------------------
+// ----------------------------------------------------------------------
+// MAIN PAGE — Tab between FitTracker & NutriTrack
+// ----------------------------------------------------------------------
 class Calender extends StatelessWidget {
   const Calender({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Determine initial index based on whether the user has 'fir tracker' (FitTracker)
-    // Since the prompt asks for the NutriTracker page, we set initialIndex to 1 (NutriTrack)
-    const initialTabIndex = 1;
-
     return DefaultTabController(
       length: 2,
-      initialIndex: initialTabIndex,
+      initialIndex: 1, // 0 = FitTracker, 1 = NutriTrack
       child: Scaffold(
         backgroundColor: AppColor.black111214,
         appBar: AppBar(
           backgroundColor: AppColor.black111214,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: AppColor.white),
-            onPressed: () => Get.back(),
-          ),
+         automaticallyImplyLeading: false,
           title: Text(
-            'NutriTrack', // Title of the main module
+            'NutriTrack',
             style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 22.sp),
           ),
           actions: [
@@ -104,9 +94,9 @@ class Calender extends StatelessWidget {
                 ),
                 child: TabBar(
                   indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10.r),
-                    color: AppColor.customPurple,
-                    border: Border.all(width: 2,color: Colors.white)
+                      borderRadius: BorderRadius.circular(10.r),
+                      color: AppColor.customPurple,
+                      border: Border.all(width: 2,color: Colors.white)
                   ),
                   labelColor: AppColor.white,
                   unselectedLabelColor: AppColor.white.withOpacity(0.7),
@@ -143,422 +133,11 @@ class Calender extends StatelessWidget {
   }
 }
 
-
-// --------------------------- 1. FIT TRACKER VIEW (Refactored from your code) -----------------------
-
-class FitTrackerView extends StatefulWidget {
+class FitTrackerView extends StatelessWidget {
   const FitTrackerView({super.key});
 
-  @override
-  State<FitTrackerView> createState() => _FitTrackerViewState();
-}
-
-class _FitTrackerViewState extends State<FitTrackerView> {
-  // Mock Data for the Calendar Dots
-  late List<DailyProgress> mockProgressData;
-  DateTime currentMonth = DateTime(2025, 1); // January 2025
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize mock data for the calendar dots
-    mockProgressData = [
-      DailyProgress(date: DateTime(2025, 1, 7), types: {ProgressType.front}),
-      DailyProgress(date: DateTime(2025, 1, 9), types: {ProgressType.side}),
-      DailyProgress(date: DateTime(2025, 1, 11), types: {ProgressType.back}),
-      DailyProgress(date: DateTime(2025, 1, 14), types: {ProgressType.front, ProgressType.side}),
-      DailyProgress(date: DateTime(2025, 1, 18), types: {ProgressType.side, ProgressType.back}),
-      DailyProgress(date: DateTime(2025, 1, 23), types: {ProgressType.front}),
-      DailyProgress(date: DateTime(2025, 1, 27), types: {ProgressType.side}),
-      DailyProgress(date: DateTime(2025, 1, 30), types: {ProgressType.front, ProgressType.back}),
-    ];
-  }
-
-  // --- Calendar Logic and Widgets ---
-
-  Widget _buildCalendarHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-          child: Text(
-            DateFormat.yMMMM().format(currentMonth),
-            style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp),
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: AppColor.white, size: 18),
-              onPressed: () {
-                setState(() {
-                  currentMonth = DateTime(currentMonth.year, currentMonth.month - 1, 1);
-                });
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.arrow_forward_ios, color: AppColor.white, size: 18),
-              onPressed: () {
-                setState(() {
-                  currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
-                });
-              },
-            ),
-            SizedBox(width: 20.w),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // Calendar Day Cell (The core piece showing dates and dots)
-  Widget _buildDayCell(DateTime day, bool isInCurrentMonth) {
-    // Find progress data for this specific day
-    final progress = mockProgressData.firstWhereOrNull(
-          (p) => p.date.day == day.day && p.date.month == day.month && p.date.year == day.year,
-    );
-
-    // Style for the '9' (Today/Selected Day) bubble - Mocking the selected day as 9th
-    final isSelectedDay = day.day == 9 && day.month == currentMonth.month && day.year == currentMonth.year;
-
-    return Container(
-      alignment: Alignment.center,
-      height: 40.h,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Container(
-            width: 30.w,
-            height: 30.w,
-            alignment: Alignment.center,
-            decoration: isSelectedDay
-                ? BoxDecoration(
-              color: AppColor.customPurple,
-              borderRadius: BorderRadius.circular(10.r),
-            )
-                : null,
-            child: Text(
-              '${day.day}',
-              style: AppTextStyles.poppinsSemiBold.copyWith(
-                fontSize: 14.sp,
-                color: isInCurrentMonth ? (isSelectedDay ? AppColor.white : AppColor.white) : AppColor.gray9CA3AF.withOpacity(0.5),
-              ),
-            ),
-          ),
-          if (progress != null)
-            Padding(
-              padding: EdgeInsets.only(top: 2.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: progress.types.map((type) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 1.w),
-                    child: Container(
-                      width: 5.w,
-                      height: 5.w,
-                      decoration: BoxDecoration(
-                        color: type.getColor(colorMap),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCalendarGrid() {
-    final daysInMonth = DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(currentMonth.year, currentMonth.month, 1);
-    final startWeekday = firstDayOfMonth.weekday; // 1 (Mon) - 7 (Sun)
-
-    // Calendar starts on Sunday (0) in the screenshot, so adjust start day
-    final daysBefore = startWeekday % 7;
-
-    // Get last days of the previous month
-    final prevMonth = DateTime(currentMonth.year, currentMonth.month, 0);
-    final daysInPrevMonth = prevMonth.day;
-
-    List<Widget> days = [];
-
-    // 1. Days from previous month
-    for (int i = daysBefore; i > 0; i--) {
-      final day = DateTime(prevMonth.year, prevMonth.month, daysInPrevMonth - i + 1);
-      days.add(_buildDayCell(day, false));
-    }
-
-    // 2. Days in current month
-    for (int i = 1; i <= daysInMonth; i++) {
-      final day = DateTime(currentMonth.year, currentMonth.month, i);
-      days.add(_buildDayCell(day, true));
-    }
-
-    // 3. Days from next month (fill up to 6 rows)
-    int daysNeededForNextMonth = 42 - days.length; // Max 6 rows * 7 days
-    if (days.length <= 35) { // If it fits in 5 rows
-      daysNeededForNextMonth = 35 - days.length; // Fill up to 5 rows
-    } else {
-      daysNeededForNextMonth = 42 - days.length; // Fill up to 6 rows
-    }
-
-    if (daysNeededForNextMonth < 0) daysNeededForNextMonth = 0;
-
-    final nextMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
-    for (int i = 1; i <= daysNeededForNextMonth; i++) {
-      final day = DateTime(nextMonth.year, nextMonth.month, i);
-      days.add(_buildDayCell(day, false));
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        childAspectRatio: 0.8, // Adjust aspect ratio for dots
-      ),
-      itemCount: days.length,
-      itemBuilder: (context, index) => days[index],
-    );
-  }
-
-  // --- Gallery and Photo Widgets ---
-
-  Widget _buildFilterChip(String label, bool isSelected) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 8.h),
-      margin: EdgeInsets.only(right: 10.w),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColor.customPurple : AppColor.gray9CA3AF.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(15.r),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.poppinsSemiBold.copyWith(
-          fontSize: 14.sp,
-          color: AppColor.white,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGalleryItem(String date, String type, String mockImagePath, Color tagColor) {
-    return Container(
-      height: 180.h,
-      width: 160.w,
-      margin: EdgeInsets.only(right: 15.w),
-      decoration: BoxDecoration(
-        color: AppColor.gray9CA3AF.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            height: 100.h,
-            decoration: BoxDecoration(
-              color: AppColor.gray9CA3AF.withOpacity(0.1),
-              borderRadius: BorderRadius.only(topRight: Radius.circular(20.r),topLeft: Radius.circular(20.r)),
-              image: DecorationImage(
-                image: AssetImage(mockImagePath),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(AppColor.black111214.withOpacity(0.2), BlendMode.darken),
-              ),
-            ),
-          ),
-          Padding(
-            padding:  EdgeInsets.all(8.w),
-            child: Text(
-              date,
-              style: AppTextStyles.poppinsSemiBold.copyWith(
-                color: AppColor.white,
-                fontSize: 12.sp,
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Container(
-              padding: EdgeInsets.all(5.w),
-              decoration: BoxDecoration(
-                color: tagColor,
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: Text(
-                type,
-                style: AppTextStyles.poppinsSemiBold.copyWith(
-                  color: AppColor.white,
-                  fontSize: 10.sp,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Main Build Method ---
-
-  @override
-  Widget build(BuildContext context) {
-    // Scaffold removed as this is now the body of the NutriTrackPage
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Top Stats (Photos, Streak)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-            child: Row(
-              children: [
-                _buildStatCard('Photos', '47', '+3 this week', Icons.camera_alt,AppColor.green22C55E),
-                SizedBox(width: 20.w),
-                _buildStatCard('Streak', '12', 'days active', Icons.calendar_today,AppColor.skyBlue00C2FF),
-              ],
-            ),
-          ),
-
-          // 2. Calendar Month Header
-          _buildCalendarHeader(),
-
-          // 3. Weekday Headers (S M T W T F S)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            child: Row(
-              children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) => Expanded(
-                child: Center(
-                  child: Text(
-                    day,
-                    style: AppTextStyles.poppinsSemiBold.copyWith(color: AppColor.gray9CA3AF, fontSize: 14.sp),
-                  ),
-                ),
-              )).toList(),
-            ),
-          ),
-
-          // 4. Calendar Grid
-          _buildCalendarGrid(),
-
-          // 5. Calendar Legend (Front, Side, Back dots)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: ProgressType.values.map((type) {
-                return Row(
-                  children: [
-                    Container(
-                      width: 10.w,
-                      height: 10.w,
-                      decoration: BoxDecoration(
-                        color: type.getColor(colorMap),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: 5.w),
-                    Text(
-                      type.label,
-                      style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.white, fontSize: 12.sp),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-
-          // 6. Photo Filters
-          Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 20.h, 0, 10.h),
-            child: Text(
-              'Photo Filters',
-              style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp),
-            ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            child: Row(
-              children: [
-                _buildFilterChip('All', true),
-                _buildFilterChip('Front', false),
-                _buildFilterChip('Side', false),
-                _buildFilterChip('Back', false),
-              ],
-            ),
-          ),
-
-          // 7. Progress Gallery
-          Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 10.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Progress Gallery',
-                  style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp),
-                ),
-                GestureDetector(
-                  onTap: () => _showPasswordDialog(context),
-                  child: Text(
-                    'View All',
-                    style: AppTextStyles.poppinsSemiBold.copyWith(
-                        color: AppColor.green22C55E, fontSize: 14.sp),
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-
-          // Mock Gallery Items
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            child: Row(
-              children: [
-                _buildGalleryItem(
-                  'Jan 8, 2024',
-                  'Front',
-                  ImageAssets.img_2, // Placeholder path
-                  AppColor.customPurple,
-                ),
-                _buildGalleryItem(
-                  'Jan 5, 2024',
-                  'Side',
-                  ImageAssets.img_2, // Placeholder path
-                  AppColor.green22C55E,
-                ),
-                _buildGalleryItem(
-                  'Dec 1, 2023',
-                  'Back',
-                  ImageAssets.img_2, // Placeholder path
-                  AppColor.cyan06B6D4,
-                ),
-              ],
-            ),
-          ),
-
-          // 8. Side-by-Side Comparison (Mock Card)
-          _buildComparisonCard(),
-
-          // 9. Take Photo Button
-          _buildTakePhotoButton(),
-          SizedBox(height: 40.h),
-        ],
-      ),
-    );
-  }
-
-  // --- Helper Card Widgets ---
-
-  Widget _buildStatCard(String title, String value, String subtitle, IconData icon,Color color) {
+  // Helper widgets (stat card, chip, etc.) – defined at bottom
+  Widget _buildStatCard(String title, String value, String subtitle, IconData icon, Color color) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(16.r),
@@ -571,47 +150,34 @@ class _FitTrackerViewState extends State<FitTrackerView> {
           children: [
             Row(
               children: [
-                Icon(icon, color: AppColor.green22C55E, size: 20.sp),
+                Icon(icon, color: color, size: 20.sp),
                 SizedBox(width: 8.w),
-                Text(
-                  title,
-                  style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.green22C55E, fontSize: 14.sp),
-                ),
+                Text(title, style: AppTextStyles.poppinsRegular.copyWith(color: color, fontSize: 14.sp)),
               ],
             ),
             SizedBox(height: 5.h),
-            Text(
-              value,
-              style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 32.sp),
-            ),
-            Text(
-              subtitle,
-              style: AppTextStyles.poppinsRegular.copyWith(color: color, fontSize: 12.sp),
-            ),
+            Text(value, style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 32.sp)),
+            Text(subtitle, style: AppTextStyles.poppinsRegular.copyWith(color: color, fontSize: 12.sp)),
           ],
         ),
       ),
     );
   }
 
+
+
   Widget _buildComparisonCard() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.h),
+      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
       padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        color: AppColor.gray9CA3AF.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
+      decoration: BoxDecoration(color: AppColor.gray9CA3AF.withOpacity(0.1), borderRadius: BorderRadius.circular(20.r)),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Side-by-Side Comparison',
-                style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 16.sp),
-              ),
-              SvgPicture.asset(ImageAssets.svg46, height: 20.h, color: AppColor.white,)
+              Text('Side-by-Side Comparison', style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 16.sp)),
+              SvgPicture.asset(ImageAssets.svg46, height: 20.h, color: AppColor.white),
             ],
           ),
           SizedBox(height: 15.h),
@@ -619,25 +185,18 @@ class _FitTrackerViewState extends State<FitTrackerView> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildComparisonImage('BEFORE', 'Dec 1', ImageAssets.img_21),
-              SizedBox(width: 10.w,),
-              _buildComparisonImage('AFTER', 'Jan 8',  ImageAssets.img_21),
+              _buildComparisonImage('AFTER', 'Jan 8', ImageAssets.img_21),
             ],
           ),
           SizedBox(height: 10.h),
-          Text(
-            '38 days progress',
-            style: AppTextStyles.poppinsBold.copyWith(color: AppColor.green22C55E, fontSize: 16.sp),
-          ),
-          Text(
-            'Keep pushing forward! 💪',
-            style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF, fontSize: 12.sp),
-          ),
+          Text('38 days progress', style: AppTextStyles.poppinsBold.copyWith(color: AppColor.green22C55E, fontSize: 16.sp)),
+          Text('Keep pushing forward!', style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF, fontSize: 12.sp)),
         ],
       ),
     );
   }
 
-  Widget _buildComparisonImage(String title, String date, String mockImagePath) {
+  Widget _buildComparisonImage(String title, String date, String asset) {
     return Column(
       children: [
         Container(
@@ -645,155 +204,414 @@ class _FitTrackerViewState extends State<FitTrackerView> {
           height: 180.h,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15.r),
-            image: DecorationImage(
-              image: AssetImage(mockImagePath),
-              fit: BoxFit.cover,
-            ),
+            image: DecorationImage(image: AssetImage(asset), fit: BoxFit.cover),
           ),
-          child: Stack(
-            children: [
-              // Bottom Text Tag
-              Positioned(
-                bottom: 8.h,
-                left: 8.w,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(
-                    color: AppColor.black111214.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Text(
-                    title,
-                    style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 12.sp),
-                  ),
-                ),
-              ),
-            ],
+          child: Align(
+            alignment: Alignment.bottomLeft,
+            child: Container(
+              margin: EdgeInsets.all(8.r),
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              decoration: BoxDecoration(color: AppColor.black111214.withOpacity(0.7), borderRadius: BorderRadius.circular(10.r)),
+              child: Text(title, style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 12.sp)),
+            ),
           ),
         ),
         SizedBox(height: 5.h),
-        Text(
-          date,
-          style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF, fontSize: 12.sp),
-        ),
+        Text(date, style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF, fontSize: 12.sp)),
       ],
     );
   }
 
   Widget _buildTakePhotoButton() {
-    return Container(
+    final controller = Get.find<GalleryController>();
+
+    return Obx(() => Container(
       margin: EdgeInsets.symmetric(horizontal: 20.w),
-      width: double.infinity,
-      height: 50.h,
+      height: 56.h,
       decoration: BoxDecoration(
         color: AppColor.customPurple,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(16.r),
       ),
       child: TextButton.icon(
-        onPressed: () {},
-        icon: const Icon(Icons.camera_alt, color: AppColor.white, size: 24),
+        onPressed: controller.isUploading.value
+            ? null
+            : () => _showPhotoSourceSheet(),
+        icon: controller.isUploading.value
+            ? SizedBox(
+          width: 24.w,
+          height: 24.w,
+          child: const CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2.5,
+          ),
+        )
+            : const Icon(Icons.camera_alt, color: Colors.white, size: 28),
         label: Text(
-          'Take Photo',
-          style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp),
+          controller.isUploading.value ? "Uploading..." : "Take Photo",
+          style: AppTextStyles.poppinsBold.copyWith(color: Colors.white, fontSize: 18.sp),
+        ),
+      ),
+    ));
+  }
+  void _showPhotoSourceSheet() {
+    final controller = Get.find<GalleryController>();
+
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(24.w),
+        decoration: const BoxDecoration(
+          color: AppColor.gray1F2937,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Add Progress Photo", style: AppTextStyles.poppinsBold.copyWith(fontSize: 20.sp, color: Colors.white)),
+            SizedBox(height: 30.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _photoOption(Icons.camera_alt, "Camera", () {
+                  Get.back();
+                  controller.takeAndUploadPhoto(fromGallery: false);
+                }),
+                _photoOption(Icons.photo_library, "Gallery", () {
+                  Get.back();
+                  controller.takeAndUploadPhoto(fromGallery: true);
+                }),
+              ],
+            ),
+            SizedBox(height: 20.h),
+          ],
         ),
       ),
     );
   }
 
-  // --- Dialog function (Requires context) ---
+  Widget _photoOption(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: AppColor.customPurple.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 30.sp, color: AppColor.customPurple),
+          ),
+          SizedBox(height: 12.h),
+          Text(label, style: AppTextStyles.poppinsSemiBold.copyWith(color: Colors.white, fontSize: 12.sp)),
+        ],
+      ),
+    );
+  }
   void _showPasswordDialog(BuildContext context) {
-    final TextEditingController passwordController = TextEditingController();
-
+    final ctrl = TextEditingController();
     Get.defaultDialog(
       backgroundColor: AppColor.gray1F2937,
-      titlePadding: EdgeInsets.only(top: 10.h),
       title: '',
       content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.lock,
-            color: AppColor.customPurple,
-            size: 60.sp, // Big lock icon
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            'Enter Password',
-            style: AppTextStyles.poppinsBold.copyWith(
-              color: AppColor.white,
-              fontSize: 18.sp,
-            ),
-          ),
-          SizedBox(height: 20.h),
+          const Icon(Icons.lock, color: AppColor.customPurple, size: 60),
+          const SizedBox(height: 10),
+          Text('Enter Password', style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp)),
+          const SizedBox(height: 20),
           Padding(
-            padding:  EdgeInsets.all(10.w),
+            padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: TextField(
-              controller: passwordController,
-              style: const TextStyle(color: AppColor.white),
+              controller: ctrl,
               obscureText: true,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 hintText: 'Password',
                 hintStyle: TextStyle(color: AppColor.gray9CA3AF),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColor.gray9CA3AF.withOpacity(0.5)),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppColor.customPurple),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: AppColor.gray9CA3AF), borderRadius: BorderRadius.circular(10.r)),
+                focusedBorder: OutlineInputBorder(borderSide: const BorderSide(color: AppColor.customPurple), borderRadius: BorderRadius.circular(10.r)),
               ),
             ),
           ),
-          SizedBox(height: 15.h),
+          const SizedBox(height: 20),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColor.customPurple),
             onPressed: () {
-              if (passwordController.text == '1234') { // Replace with your correct password
-                Get.back(); // Close dialog
-                Get.to(() =>  ProgressGalleryPage()); // Navigate to next page
+              if (ctrl.text == '1234') {
+                Get.back();
+                Get.to(() =>  ProgressGalleryPage(),transition: Transition.rightToLeft);
               } else {
-                Get.snackbar(
-                  'Error',
-                  'Incorrect password',
-                  backgroundColor: AppColor.redDC2626,
-                  colorText: AppColor.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                );
+                Get.snackbar('Error', 'Incorrect password', backgroundColor: AppColor.redDC2626, colorText: AppColor.white);
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColor.customPurple,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-            ),
-            child: Text(
-              'Submit',
-              style: AppTextStyles.poppinsBold.copyWith(
-                color: AppColor.white,
-                fontSize: 16.sp,
-              ),
-            ),
+            child: Text('Submit', style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white)),
           ),
         ],
       ),
     );
   }
+
+  // Calendar Grid – Real dots from API
+  Widget _buildCalendarGrid(DateTime month, Map<String, List<String>> dateTypes) {
+    final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+    final firstDay = DateTime(month.year, month.month, 1);
+    final startWeekday = firstDay.weekday % 7; // 0 = Sunday
+
+    final prevMonth = DateTime(month.year, month.month, 0);
+    final daysInPrev = prevMonth.day;
+
+    List<DateTime> days = [];
+
+    // Prev month
+    for (int i = startWeekday; i > 0; i--) {
+      days.add(DateTime(prevMonth.year, prevMonth.month, daysInPrev - i + 1));
+    }
+    // Current month
+    for (int i = 1; i <= daysInMonth; i++) days.add(DateTime(month.year, month.month, i));
+    // Next month (fill 6 rows)
+    for (int i = 1; i <= (42 - days.length); i++) {
+      days.add(DateTime(month.year, month.month + 1, i));
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.symmetric(horizontal: 20.w),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, childAspectRatio: 0.8),
+      itemCount: days.length,
+      itemBuilder: (_, index) {
+        final day = days[index];
+        final isCurrentMonth = day.month == month.month;
+        final key = DateFormat('yyyy-MM-dd').format(day);
+        final types = (dateTypes[key] ?? []).map((t) {
+          switch (t.toLowerCase()) {
+            case 'front': return ProgressType.front;
+            case 'side': return ProgressType.side;
+            case 'back': return ProgressType.back;
+            default: return ProgressType.front;
+          }
+        }).toSet();
+
+        final isToday = day.isSameDate(DateTime.now());
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 32.w,
+              height: 32.w,
+              alignment: Alignment.center,
+              decoration: isToday
+                  ? BoxDecoration(color: AppColor.customPurple, borderRadius: BorderRadius.circular(10.r))
+                  : null,
+              child: Text(
+                '${day.day}',
+                style: AppTextStyles.poppinsSemiBold.copyWith(
+                  fontSize: 14.sp,
+                  color: isCurrentMonth
+                      ? (isToday ? AppColor.white : AppColor.white)
+                      : AppColor.gray9CA3AF.withOpacity(0.5),
+                ),
+              ),
+            ),
+            if (types.isNotEmpty)
+              Padding(
+                padding: EdgeInsets.only(top: 4.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: types.map((t) => Container(
+                    margin: EdgeInsets.symmetric(horizontal: 1.5.w),
+                    width: 6.w,
+                    height: 6.w,
+                    decoration: BoxDecoration(color: t.getColor(colorMap), shape: BoxShape.circle),
+                  )).toList(),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildGalleryItem(String date, String type, String url, Color tagColor) {
+    return Container(
+      width: 160.w,
+      height: 180.h,
+      margin: EdgeInsets.only(right: 15.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.r),
+        color: AppColor.gray9CA3AF.withOpacity(0.1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.r),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              url,
+              fit: BoxFit.cover,
+              loadingBuilder: (_, child, progress) =>
+              progress == null ? child : Container(color: AppColor.gray1F2937),
+              errorBuilder: (_, __, ___) =>
+                  Container(color: AppColor.gray1F2937, child: const Icon(Icons.error)),
+            ),
+
+            /// 🔵 BLUR CENSOR EFFECT ADDED HERE
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12), // adjust blur
+              child: Container(color: Colors.black.withOpacity(0)), // transparent overlay
+            ),
+
+            Positioned(
+              bottom: 10.h,
+              left: 10.w,
+              child: Text(
+                date,
+                style: AppTextStyles.poppinsSemiBold.copyWith(
+                  color: AppColor.white,
+                  fontSize: 12.sp,
+                  shadows: [Shadow(blurRadius: 6, color: Colors.black)],
+                ),
+              ),
+            ),
+
+            Positioned(
+              bottom: 10.h,
+              right: 10.w,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: tagColor,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Text(
+                  type,
+                  style: AppTextStyles.poppinsSemiBold.copyWith(
+                    color: AppColor.white,
+                    fontSize: 10.sp,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = Get.put(GalleryController());
+
+    return Obx(() {
+      final data = controller.dashboardData.value;
+      final loading = controller.isLoading.value;
+      final month = controller.currentMonth.value;
+
+      if (loading) {
+        return const Center(child: CircularProgressIndicator(color: AppColor.customPurple));
+      }
+      if (data == null) {
+        return const Center(child: Text('No data', style: TextStyle(color: AppColor.white)));
+      }
+
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Stats
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              child: Row(children: [
+                _buildStatCard('Photos', '${data.totalImages}', '+${data.imagesLastWeek} this week', Icons.camera_alt, AppColor.green22C55E),
+                SizedBox(width: 20.w),
+                _buildStatCard('Streak', '${data.consecutiveDaysStreak}', 'days active', Icons.local_fire_department, AppColor.orangeF97316),
+              ]),
+            ),
+
+            // Calendar Header
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(DateFormat('MMMM yyyy').format(month), style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp)),
+                  Row(children: [
+                    IconButton(icon: const Icon(Icons.arrow_back_ios, size: 18, color: AppColor.white), onPressed: () => controller.changeMonth(-1)),
+                    IconButton(icon: const Icon(Icons.arrow_forward_ios, size: 18, color: AppColor.white), onPressed: () => controller.changeMonth(1)),
+                  ]),
+                ],
+              ),
+            ),
+
+            // Weekdays
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                children: ['S','M','T','W','T','F','S'].map((d) => Expanded(child: Center(child: Text(d, style: AppTextStyles.poppinsSemiBold.copyWith(color: AppColor.gray9CA3AF, fontSize: 14.sp))))).toList(),
+              ),
+            ),
+
+            // Calendar Grid
+            _buildCalendarGrid(month, data.dateImageTypes),
+
+            // Legend
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: ProgressType.values.map((t) => Row(children: [
+                  Container(width: 10.w, height: 10.w, decoration: BoxDecoration(color: t.getColor(colorMap), shape: BoxShape.circle)),
+                  SizedBox(width: 6.w),
+                  Text(t.label, style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.white, fontSize: 12.sp)),
+                ])).toList(),
+              ),
+            ),
+
+            // Gallery
+            Padding(
+              padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 10.h),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('Progress Gallery', style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 18.sp)),
+                GestureDetector(onTap: () => _showPasswordDialog(context), child: Text('View All', style: AppTextStyles.poppinsSemiBold.copyWith(color: AppColor.green22C55E, fontSize: 14.sp))),
+              ]),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                children: data.latestImages.map((img) => _buildGalleryItem(
+                  DateFormat('MMM dd').format(img.uploadedAt),
+                  img.progressType.label,
+                  img.imageUrl,
+                  img.progressType.getColor(colorMap),
+                )).toList(),
+              ),
+            ),
+
+            SizedBox(height: 20.h),
+            _buildComparisonCard(),
+            _buildTakePhotoButton(),
+            SizedBox(height: 40.h),
+          ],
+        ),
+      );
+    });
+  }
 }
 
-// --------------------------- 2. NUTRI TRACK VIEW -----------------------
-
 class NutriTrackView extends StatelessWidget {
-   NutriTrackView({super.key});
+  NutriTrackView({super.key});
 
   // Mock Data for the NutriTrack View
   final List<Meal> meals =  [
     Meal(
-      title: 'Breakfast',
-      description: 'Oatmeal with berries',
-      time: '8:30 AM',
-      calories: 320,
-      image: ImageAssets.img_26
+        title: 'Breakfast',
+        description: 'Oatmeal with berries',
+        time: '8:30 AM',
+        calories: 320,
+        image: ImageAssets.img_26
     ),
     Meal(
       title: 'Lunch',
@@ -807,14 +625,14 @@ class NutriTrackView extends StatelessWidget {
       description: 'Apple with almond butter',
       time: '3:20 PM',
       calories: 180,
-        image:       ImageAssets.img_26, // Placeholder path
+      image:       ImageAssets.img_26, // Placeholder path
     ),
     Meal(
       title: 'Dinner',
       description: 'Not added yet',
       time: 'Add meal',
       calories: 0,
-        image:       ImageAssets.img_26, // Placeholder path
+      image:       ImageAssets.img_26, // Placeholder path
     ),
   ];
 
@@ -951,7 +769,7 @@ class NutriTrackView extends StatelessWidget {
                   padding: EdgeInsetsGeometry.symmetric(vertical: 10.h,horizontal: 8.w),
                   decoration: BoxDecoration(
                       color: AppColor.white30,
-                    borderRadius: BorderRadius.circular(20.w)
+                      borderRadius: BorderRadius.circular(20.w)
                   ),
                   child: SvgPicture.asset(ImageAssets.svg57,color: Colors.white,))
             ],
@@ -1006,12 +824,12 @@ class NutriTrackView extends StatelessWidget {
       padding: EdgeInsets.only(bottom: 10.h),
       child: Container(
         padding: EdgeInsets.all(12.w),
-decoration: BoxDecoration(
-    borderRadius: BorderRadius.circular(15.r),
-  border: Border.all(
-    color: isAdded?Colors.transparent:AppColor.customPurple,
-  )
-),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15.r),
+            border: Border.all(
+              color: isAdded?Colors.transparent:AppColor.customPurple,
+            )
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -1026,8 +844,8 @@ decoration: BoxDecoration(
                     ? DecorationImage(
                   // Using a placeholder image to keep the file self-contained
                   image: AssetImage(
-                   meal.image,
-                ),   fit: BoxFit.cover,)
+                    meal.image,
+                  ),   fit: BoxFit.cover,)
                     : null,
               ),
               child: !isAdded
@@ -1093,7 +911,7 @@ decoration: BoxDecoration(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-           SvgPicture.asset(svg),
+            SvgPicture.asset(svg),
             SizedBox(height: 5.h),
             Text(
               label,
@@ -1107,5 +925,12 @@ decoration: BoxDecoration(
         ),
       ),
     );
+  }
+}
+
+// Helper extension for date comparison
+extension DateOnlyCompare on DateTime {
+  bool isSameDate(DateTime other) {
+    return year == other.year && month == other.month && day == other.day;
   }
 }

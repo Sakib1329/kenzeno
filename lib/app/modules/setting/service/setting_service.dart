@@ -133,4 +133,28 @@ class SettingService {
       throw Exception("Failed to load contact options");
     }
   }
+
+  // Example: lib/services/utils_service.dart  or  setting_service.dart
+
+  Future<String> fetchPrivacyPolicyContent() async {
+    final token = GetStorage().read("loginToken");
+
+    final response = await http.get(
+      Uri.parse("${AppConstants.baseUrl}/utils/privacy-policy/"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+
+    print("Privacy Policy Status: ${response.statusCode}");
+    print("Response: ${response.body}");
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(utf8.decode(response.bodyBytes));
+      return json['content'] as String? ?? "No content available.";
+    } else {
+      throw Exception("Failed to load privacy policy (${response.statusCode})");
+    }
+  }
 }

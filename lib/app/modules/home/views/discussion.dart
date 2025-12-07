@@ -1,134 +1,138 @@
+// lib/app/modules/home/views/discussion_forum_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-// Note: Ensure all your imports are correctly configured
+import 'package:get/get.dart';
+
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
-import '../../../res/assets/asset.dart';
-import '../../../widgets/daytrainningcard.dart';
-
-
-// DUMMY DATA
-final List<Map<String, String>> forumTopics = [
-  {
-    'title': 'Strength Training Techniques',
-    'subtitle': 'Discussion on training methods',
-    'time': 'Today 17:05',
-  },
-  {
-    'title': 'Nutrition and Diet Strategies',
-    'subtitle': 'Meal planning, supplementation preferences',
-    'time': 'Today 17:05',
-  },
-  {
-    'title': 'Cardiovascular Fitness',
-    'subtitle': 'About different types of cardio workouts',
-    'time': 'Today 17:05',
-  },
-  {
-    'title': 'Strength Training Techniques',
-    'subtitle': 'Strategies for improving flexibility and joint mobility to prevent injuries',
-    'time': 'Today 17:05',
-  },
-];
+import '../controllers/post_controller.dart';
+import '../widgets/postcard.dart';
 
 class DiscussionForumPage extends StatelessWidget {
-  const DiscussionForumPage({super.key});
+  DiscussionForumPage({super.key});
+
+  // Controller for text input
+  final TextEditingController textController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    final controller = Get.put(ForumController());
+
+    // Fixed Post Creation Box — exactly the same as yours
+    final Widget postInputBar = Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: AppColor.gray1F2937,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: AppColor.customPurple.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, -2)),
+        ],
+      ),
+      child: Row(
         children: [
-          // BIG CHALLENGE IMAGE CARD (Persists across both tabs)
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            child: TrainingOfTheDayCard(
-              ontap: (){},
-              headtitle: 'Cycling Challenge',
-              title: 'Cycling Challenge',
-              duration: '15 Minutes',
-              calories: '100 Kcal',
-              exercises: '1 Challenge',
-              imagePath: ImageAssets.img_20, // Replace with your asset
-            ),
+          CircleAvatar(
+            radius: 22.r,
+            backgroundImage: const NetworkImage("https://randomuser.me/api/portraits/men/86.jpg"),
+            backgroundColor: AppColor.gray9CA3AF,
           ),
-          Padding(
-            padding: EdgeInsets.only(left: 20.w, top: 20.h, bottom: 10.h),
-            child: Text(
-              'Forums',
-              style: AppTextStyles.poppinsBold.copyWith(
-                color: Colors.white,
-                fontSize: 22.sp,
+          SizedBox(width: 12.w),
+          Expanded(
+            child: TextField(
+              controller: textController,
+              style: TextStyle(color: AppColor.white, fontSize: 16.sp),
+              decoration: InputDecoration(
+                hintText: "Share your opinion ",
+                hintStyle: TextStyle(color: AppColor.white.withOpacity(0.5), fontSize: 15.sp),
+                border: InputBorder.none,
               ),
             ),
           ),
+          SizedBox(width: 10.w),
 
-          // Forum List
-          ...forumTopics.map((topic) => _buildForumListItem(topic)).toList(),
-          SizedBox(height: 20.h),
+          // SEND BUTTON — NOW WORKS PERFECTLY
+          GestureDetector(
+            onTap: controller.isPosting.value
+                ? null
+                : () async {
+              final text = textController.text.trim();
+              if (text.isEmpty) {
+                Get.snackbar("Empty", "Write something first",
+                    backgroundColor: AppColor.redDC2626, colorText: Colors.white);
+                return;
+              }
+              final success = await controller.createForumPost(content: text);
+              Get.closeAllSnackbars();
+
+              if (success) {
+                textController.clear();
+                // No need to call fetchPosts() — new post is added instantly
+              }
+            },
+            child: Obx(() => Container(
+              padding: EdgeInsets.all(10.r),
+              decoration: const BoxDecoration(
+                color: AppColor.customPurple,
+                shape: BoxShape.circle,
+              ),
+              child: controller.isPosting.value
+                  ? CircularProgressIndicator(color: AppColor.white, strokeWidth: 2)
+                  : Icon(Icons.send_rounded, color: Colors.white, size: 22.sp),
+            )),
+          ),
         ],
       ),
     );
-  }
 
-  Widget _buildForumListItem(Map<String, String> topic) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColor.gray9CA3AF.withOpacity(0.3), width: 0.5.h),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      body: Stack(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          RefreshIndicator(
+            onRefresh: controller.fetchPosts,
+            color: AppColor.customPurple,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.only(bottom: 100.h),
               children: [
-                Text(
-                  topic['title']!,
-                  style: AppTextStyles.poppinsSemiBold.copyWith(
-                    color: Colors.white,
-                    fontSize: 16.sp,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  topic['subtitle']!,
-                  style: AppTextStyles.poppinsRegular.copyWith(
-                    color: AppColor.gray9CA3AF,
-                    fontSize: 12.sp,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                SizedBox(height: 16.h),
+
+                // POSTS LIST — ONLY CHANGES HERE
+                Obx(() => Column(
+                  children: controller.posts.map((post) => PostCard(
+                    key: ValueKey(post.id), // Helps Flutter delete the correct card
+                    avatarUrl:
+                    "https://ui-avatars.com/api/?name=${Uri.encodeComponent(post.userName)}&background=6B46C1&color=fff",
+                    name: post.userName,
+                    content: post.content,
+                    favoriteCount: post.likes,
+                    commentCount: post.comments, // Now shows real count!
+                    isFavorited: false,
+                    onFavoriteTap: () {
+                      print("Like tapped on post ${post.id}");
+                    },
+                    postId: post.id,
+                    onEditComplete: (newText) {
+                      // Update content instantly after edit
+                      final index = controller.posts.indexWhere((p) => p.id == post.id);
+                      if (index != -1) {
+                        controller.posts[index] = controller.posts[index].copyWith(content: newText);
+                        controller.posts.refresh();
+                      }
+                    },
+                  )).toList(),
+                )),
+
+                SizedBox(height: 40.h),
               ],
             ),
           ),
-          SizedBox(width: 15.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                'See All',
-                style: AppTextStyles.poppinsSemiBold.copyWith(
-                  color: AppColor.customPurple,
-                  fontSize: 12.sp,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                topic['time']!,
-                style: AppTextStyles.poppinsRegular.copyWith(
-                  color: AppColor.gray9CA3AF,
-                  fontSize: 10.sp,
-                ),
-              ),
-            ],
+
+          // Fixed Input Bar — exactly as you had it
+          Positioned(
+            bottom: 20.h,
+            left: 16.w,
+            right: 16.w,
+            child: postInputBar,
           ),
         ],
       ),

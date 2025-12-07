@@ -11,7 +11,7 @@ class Competition extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Create a full WorkoutData instance
+ 
     final workoutData = WorkoutData(
       title: 'Cycling Challenge',
       duration: '40 min',
@@ -19,7 +19,7 @@ class Competition extends StatelessWidget {
       exercises: '10 Exercises',
       imagePath: ImageAssets.img_24,
       isVideo: true,
-      steps: beginnerWorkoutSteps, // ✅ use your defined steps map
+      steps: beginnerWorkoutSteps,
     );
 
     return ContentSplash(
@@ -28,7 +28,7 @@ class Competition extends StatelessWidget {
       title: 'Cycling Challenge',
       buttonText: 'Start Now',
       onTap: () {
-        // Pass workoutData just like in Workout screen
+
         Get.to(
               () => WorkoutDetailsScreen(),
           transition: Transition.rightToLeft,

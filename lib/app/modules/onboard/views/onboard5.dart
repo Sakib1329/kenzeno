@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:get/get.dart';
 import 'package:kenzeno/app/modules/auth/views/login.dart';
+import 'package:kenzeno/app/modules/auth/views/signup.dart';
 import 'package:kenzeno/app/modules/setup/views/setup.dart';
 
 
@@ -73,11 +74,11 @@ class Onboard5 extends StatelessWidget {
                 // Button
                 CustomButton(
                   onPress: () async{
-Get.to(Setup(),transition: Transition.rightToLeft);
+Get.to(Signup(),transition: Transition.rightToLeft);
                   },
                   title: "Get Started",
                   fontSize: 16.sp,
-                  height: 35.h,
+                  height: 45.h,
 
                   fontFamily: 'WorkSans',
                   radius: 20.r,

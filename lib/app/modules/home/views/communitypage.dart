@@ -80,7 +80,7 @@ class CommunityPage extends StatelessWidget {
             ),
           ),
         ),
-        body: const TabBarView(
+        body:  TabBarView(
           children: [
             DiscussionForumPage(),
             ChallengesPage(),

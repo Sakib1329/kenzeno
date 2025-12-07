@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:kenzeno/app/modules/auth/views/login.dart';
 import 'package:kenzeno/app/modules/setting/views/favourite.dart';
 import 'package:kenzeno/app/modules/setting/views/helpandfaq.dart';
+import 'package:kenzeno/app/modules/setting/views/privacy_policy.dart';
 import 'package:kenzeno/app/modules/setting/views/profile.dart';
 import 'package:kenzeno/app/modules/setting/views/settings.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
@@ -118,7 +119,7 @@ class More extends StatelessWidget {
                     ImageAssets.svg26,
                     "Privacy Policy",
                         () {
-                      print("Privacy Policy tapped");
+                Get.to(PrivacyPolicyScreen(),transition: Transition.rightToLeft);
                     },
                   ),
                   _buildMenuItem(

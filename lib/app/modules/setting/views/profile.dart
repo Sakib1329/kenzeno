@@ -196,7 +196,7 @@ class MyProfileEditScreen extends StatelessWidget {
                       },
                       title: controller.isLoading.value ? "Updating..." : "Update Profile",
                       fontSize: 14.sp,
-                      height: 35.h,
+                      height: 40.h,
                       fontFamily: 'WorkSans',
                       radius: 20.r,
                       fontWeight: FontWeight.bold,
@@ -249,7 +249,7 @@ class MyProfileEditScreen extends StatelessWidget {
           hintTextColor: AppColor.white30,
           borderRadius: 8.r,
           contentPadding: true,
-          height: 30.0.h,
+          height: 40.0.h,
         ),
       ],
     );

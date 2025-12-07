@@ -17,12 +17,12 @@ import '../../../widgets/textfield.dart';
 
 
 class Signup extends StatelessWidget {
-// Using Get.find() assumes the AuthController is initialized elsewhere (e.g., in a binding)
   final Authcontroller controller=Get.find();
   Signup({super.key});
 
   @override
   Widget build(BuildContext context) {
+    controller.frompage.value="signup";
     return Scaffold(
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColor.white,
@@ -105,7 +105,7 @@ class Signup extends StatelessWidget {
 
                   // Email or Phone Number
                   Text(
-                    'Email or Phone Number',
+                    'Email',
                     style: AppTextStyles.workSansBold.copyWith(
                       color: Colors.white,
                       fontSize: 12.sp,

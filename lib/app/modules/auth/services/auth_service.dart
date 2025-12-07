@@ -109,11 +109,11 @@ print(response.statusCode);
   Future<bool> activateAccount(String email, String otp) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/auth/activate/'),
+        Uri.parse('$_baseUrl/accounts/verify-email/'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'otp': otp}),
       );
-
+print(response.statusCode);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['access_token'];

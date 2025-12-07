@@ -1,180 +1,181 @@
+// lib/app/modules/setup/views/fill_profile_page.dart
+
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:kenzeno/app/modules/setup/views/coach.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
+import 'package:kenzeno/app/res/colors/colors.dart';
+import 'package:kenzeno/app/res/fonts/textstyle.dart';
 import 'package:kenzeno/app/widgets/backbutton_widget.dart';
-
-import '../../../res/colors/colors.dart';
-import '../../../res/fonts/textstyle.dart';
-import '../../../widgets/custom_button.dart';
-import '../../../widgets/textfield.dart';
+import 'package:kenzeno/app/widgets/custom_button.dart';
+import 'package:kenzeno/app/widgets/textfield.dart';
+import '../controllers/bottomsheetcontroller.dart';
 import '../controllers/setup_controller.dart';
 
-
-
-
-
-
 class FillProfilePage extends StatelessWidget {
-  final SetupController controller = Get.find();
+  final SetupController controller = Get.find<SetupController>();
+  final BottomSheetController imageController = Get.find<BottomSheetController>();
+
+  FillProfilePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: BackButtonBox(),
+        leading: const BackButtonBox(),
       ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
-              Center(
-                child: Text(
-                  "Fill Your Profile",
-                  style: AppTextStyles.poppinsBold.copyWith(fontSize: 22.sp),
-                  textAlign: TextAlign.center,
-                ),
-              ),
               SizedBox(height: 10.h),
-              // Description
-              Center(
-                child: Text(
-                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-                  style: AppTextStyles.poppinsRegular.copyWith(
-                    color: AppColor.white30,
-                    fontSize: 12.sp,
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              SizedBox(height: 40.h),
 
-              // Profile Picture Area
+              // Title
+              Text(
+                "Fill Your Profile",
+                style: AppTextStyles.poppinsBold.copyWith(
+                  fontSize: 22.sp,
+                  color: AppColor.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 8.h),
+
+              // Subtitle
+              Text(
+                'Complete your profile to get personalized experience',
+                style: AppTextStyles.poppinsRegular.copyWith(
+                  color: AppColor.white30,
+                  fontSize: 13.sp,
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              SizedBox(height: 30.h),
+
+              // Profile Picture (Reduced size)
               Center(
                 child: Stack(
                   alignment: Alignment.bottomRight,
                   children: [
-                    // Placeholder for the profile image
-                    Container(
-                      width: 120.w,
-                      height: 120.w,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColor.customPurple, width: 3.w),
-                        image: DecorationImage(
-                          // Placeholder image (replace with actual network image or Asset)
-                          image: AssetImage(ImageAssets.img_10),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    // Edit Icon
-                    GestureDetector(
-                      onTap: () {
+                    Obx(() {
+                      final imagePath = imageController.pickedImage.value?.path ?? ImageAssets.img_10;
 
-                      },
+                      return Container(
+                        width: 120.w,
+                        height: 120.w,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColor.customPurple, width: 3.w),
+                        ),
+                        child: ClipOval(
+                          child: imageController.pickedImage.value != null
+                              ? Image.file(File(imagePath), fit: BoxFit.cover)
+                              : Image.asset(imagePath, fit: BoxFit.cover),
+                        ),
+                      );
+                    }),
+
+                    // Camera Button (Smaller & Cleaner)
+                    GestureDetector(
+                      onTap: () => imageController.getBottomSheet(),
                       child: Container(
-                        padding: EdgeInsets.all(5.w),
+                        padding: EdgeInsets.all(8.w),
                         decoration: BoxDecoration(
                           color: AppColor.customPurple,
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColor.customPurple, width: 2.w),
+                          border: Border.all(color: Colors.white, width: 2.5.w),
                         ),
-                        child: Icon(Icons.edit, color: AppColor.white, size: 18.w),
+                        child: Icon(Icons.camera_alt, color: Colors.white, size: 18.w),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
-              SizedBox(height: 40.h),
 
-              // Full Name Input
-              Text(
-                'Full name',
-                style: AppTextStyles.poppinsRegular.copyWith(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColor.customPurple,
+              SizedBox(height: 30.h),
+
+              // Full Name
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Full name',
+                  style: AppTextStyles.poppinsSemiBold.copyWith(
+                    fontSize: 15.sp,
+                    color: AppColor.customPurple,
+                  ),
                 ),
               ),
               SizedBox(height: 8.h),
               InputTextWidget(
                 hintText: 'Madison Smith',
                 onChanged: controller.setFullName,
-                leading: false, // No leading icon shown in the image
-                height: 30.h,
-                hintfontWeight: FontWeight.bold,// Taller height to match image
-                borderRadius: 15.0,
-                backgroundColor: Colors.white,
+                height: 40.h,
+                borderRadius: 16.r,
+                backgroundColor: AppColor.white,
                 textColor: AppColor.black232323,
-                hintTextColor: AppColor.black232323,
-                fontWeight: FontWeight.bold,// More rounded corners
+                hintTextColor: AppColor.black232323.withOpacity(0.6),
+                fontWeight: FontWeight.w600,
               ),
+
               SizedBox(height: 20.h),
 
-              // Nickname Input
-              Text(
-                'Nickname',
-                style: AppTextStyles.poppinsRegular.copyWith(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
-                  color: AppColor.customPurple,
+              // Nickname
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Nickname',
+                  style: AppTextStyles.poppinsSemiBold.copyWith(
+                    fontSize: 15.sp,
+                    color: AppColor.customPurple,
+                  ),
                 ),
               ),
               SizedBox(height: 8.h),
               InputTextWidget(
-                hintText: 'Madison Smith',
-                onChanged: controller.setFullName,
-                leading: false, // No leading icon shown in the image
-                height: 30.h,
-                hintfontWeight: FontWeight.bold,// Taller height to match image
-                borderRadius: 15.0,
-                backgroundColor: Colors.white,
+                hintText: 'Maddy',
+                onChanged: controller.setNickName,
+                height: 40.h,
+                borderRadius: 16.r,
+                backgroundColor: AppColor.white,
                 textColor: AppColor.black232323,
-                hintTextColor: AppColor.black232323,
-                fontWeight: FontWeight.bold,// More rounded corners
+                hintTextColor: AppColor.black232323.withOpacity(0.6),
+                fontWeight: FontWeight.w600,
               ),
 
               const Spacer(),
 
-              // Start Button
+              // Start Button (Smaller & Cleaner)
               CustomButton(
-                onPress: () async {
-                  if (controller.selectedGoal.value.isEmpty) {
+                onPress: () async{
+                  if (controller.fullName.value.trim().isEmpty) {
                     Get.snackbar(
-                      '',
-                      'Please Fill up the form',
-                      snackPosition: SnackPosition.BOTTOM,
+                      'Oops',
+                      'Please enter your name',
                       backgroundColor: AppColor.purpleCCC2FF,
                       colorText: AppColor.black111214,
                       margin: EdgeInsets.all(15.w),
-                      borderRadius: 10.r,
-                      duration: const Duration(seconds: 3),
+                      borderRadius: 12.r,
                     );
                     return;
-                  } else {
-Get.to(CoachPage(),transition: Transition.rightToLeft);
                   }
+                  Get.to(() => CoachPage(), transition: Transition.rightToLeft);
                 },
-                title: "Start",
-                fontSize: 16,
-                height: 35.h,
-
-                fontFamily: 'WorkSans',
-                radius: 20.r,
+                title: "Continue",
+                fontSize: 16.sp,
+                height: 45.h,
+                radius: 26.r,
                 fontWeight: FontWeight.w700,
                 textColor: AppColor.white,
-                borderColor: AppColor.customPurple,
                 buttonColor: AppColor.customPurple,
+                borderColor: AppColor.customPurple,
               ),
+
               SizedBox(height: 30.h),
             ],
           ),
@@ -183,5 +184,3 @@ Get.to(CoachPage(),transition: Transition.rightToLeft);
     );
   }
 }
-
-

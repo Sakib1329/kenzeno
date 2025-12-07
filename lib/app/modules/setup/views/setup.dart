@@ -19,7 +19,6 @@ class Setup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColor.white,
 
       body: Container(
         color: AppColor.black111214,
@@ -42,7 +41,7 @@ SizedBox(height: 40.h,),
               child: Text(
                 "Consistency Is\nthe Key To progress.\nDon't Give Up!",
                 style: AppTextStyles.workSansSemiBold.copyWith(
-                  fontSize: 30.sp, // reduced size
+                  fontSize: 28.sp, // reduced size
 
                 ),
                 textAlign: TextAlign.center,
@@ -61,8 +60,8 @@ SizedBox(height: 40.h,),
 Get.to(Gender(),transition: Transition.rightToLeft);
                 },
                 title: "Continue",
-                fontSize: 16.sp,
-                height: 35.h,
+                fontSize: 14.sp,
+                height: 45.h,
                 svgorimage: true,
                 trailing: ImageAssets.svg3,
                 fontFamily: 'WorkSans',

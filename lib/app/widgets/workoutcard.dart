@@ -28,7 +28,7 @@ class WorkoutCardWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap, // Use the passed onTap
       child: Container(
-        padding: EdgeInsets.only(bottom: 10.h),
+        padding: EdgeInsets.only(bottom:10.w),
         decoration: BoxDecoration(
           color: AppColor.black232323,
           borderRadius: BorderRadius.circular(20.r),
@@ -101,40 +101,55 @@ class WorkoutCardWidget extends StatelessWidget {
             SizedBox(height: 5.h),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 10.w),
-              child: Row(
+              child: Wrap(
+                spacing: 4.w,     // horizontal spacing
+                runSpacing: 4.h,  // vertical spacing when wrapped
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  SvgPicture.asset(
-                    ImageAssets.svg30,
-                    height: 12.r,
-                    width: 12.r,
-                    color: AppColor.customPurple,
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.asset(
+                        ImageAssets.svg30,
+                        height: 12.r,
+                        width: 12.r,
+                        color: AppColor.customPurple,
+                      ),
+                      SizedBox(width: 5.w),
+                      Text(
+                        '$duration',
+                        style: AppTextStyles.poppinsRegular.copyWith(
+                          color: AppColor.white,
+                          fontSize: 10.sp,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 2.w),
-                  Text(
-                    '$duration ',
-                    style: AppTextStyles.poppinsRegular.copyWith(
-                      color: AppColor.white,
-                      fontSize: 10.sp,
-                    ),
-                  ),
-                  SizedBox(width: 4.w),
-                  SvgPicture.asset(
-                    ImageAssets.svg31,
-                    height: 12.r,
-                    width: 12.r,
-                    color: AppColor.customPurple,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    exercises,
-                    style: AppTextStyles.poppinsRegular.copyWith(
-                      color: AppColor.white,
-                      fontSize: 10.sp,
-                    ),
+
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SvgPicture.asset(
+                        ImageAssets.svg31,
+                        height: 12.r,
+                        width: 12.r,
+                        color: AppColor.customPurple,
+                      ),
+                      SizedBox(width: 5.w),
+                      Text(
+                        exercises,
+                        style: AppTextStyles.poppinsRegular.copyWith(
+                          color: AppColor.white,
+                          fontSize: 10.sp,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
+            )
+
+
           ],
         ),
       ),

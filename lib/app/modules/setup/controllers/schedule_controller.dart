@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ScheduleController extends GetxController {
-  final List<String> days = ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'];
+  // Days user has selected
+  final RxSet<String> selectedDays = <String>{}.obs;
 
-  var currentDay = 'S'.obs;
-  var selectedHour = 1.obs;
-  var selectedMinute = 0.obs;
+  // Single shared time for ALL selected days
+  var selectedHour = 7.obs;     // default 7 AM
+  var selectedMinute = 30.obs;  // default 30
   var selectedAmPm = 'AM'.obs;
 
-  final hours = List.generate(12, (index) => index + 1);
-  final minutes = List.generate(60, (index) => index);
+  final List<String> days = ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'];
+  final hours = List.generate(12, (i) => i + 1);
+  final minutes = List.generate(60, (i) => i);
   final amPmOptions = ['AM', 'PM'];
-
-  final Map<String, Map<String, dynamic>> schedules = {};
 
   late FixedExtentScrollController hourController;
   late FixedExtentScrollController minuteController;
@@ -22,75 +22,51 @@ class ScheduleController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    hourController = FixedExtentScrollController(initialItem: 0);
-    minuteController = FixedExtentScrollController(initialItem: 0);
+    hourController = FixedExtentScrollController(initialItem: hours.indexOf(7));
+    minuteController = FixedExtentScrollController(initialItem: 30);
     amPmController = FixedExtentScrollController(initialItem: 0);
+
+    // Optional: pre-select some days for UX
+    // selectedDays.addAll(['M', 'W', 'F']);
   }
 
-  void selectDay(String day) {
-    // Save current day schedule
-    _saveCurrentDaySchedule();
-
-    currentDay.value = day;
-
-    if (schedules.containsKey(day)) {
-      // Restore existing time
-      selectedHour.value = schedules[day]!['hour'];
-      selectedMinute.value = schedules[day]!['minute'];
-      selectedAmPm.value = schedules[day]!['ampm'];
+  // Toggle day selection
+  void toggleDay(String day) {
+    if (selectedDays.contains(day)) {
+      selectedDays.remove(day);
     } else {
-      // Reset to default
-      selectedHour.value = 1;
-      selectedMinute.value = 0;
-      selectedAmPm.value = 'AM';
+      selectedDays.add(day);
     }
-
-    // Jump scrolls to reflect change
-    _jumpToCurrentPositions();
   }
 
-  void _saveCurrentDaySchedule() {
-    schedules[currentDay.value] = {
-      'hour': selectedHour.value,
-      'minute': selectedMinute.value,
-      'ampm': selectedAmPm.value,
-    };
-  }
+  // Check if day is selected
+  bool isDaySelected(String day) => selectedDays.contains(day);
 
-  void _jumpToCurrentPositions() {
-    final hourIndex = hours.indexOf(selectedHour.value);
-    final minuteIndex = minutes.indexOf(selectedMinute.value);
-    final amPmIndex = amPmOptions.indexOf(selectedAmPm.value);
-
-    hourController.jumpToItem(hourIndex);
-    minuteController.jumpToItem(minuteIndex);
-    amPmController.jumpToItem(amPmIndex);
-  }
-
+  // Update time → applies to ALL selected days immediately
   void updateHour(int hour) {
     selectedHour.value = hour;
-    _saveCurrentDaySchedule();
   }
 
   void updateMinute(int minute) {
     selectedMinute.value = minute;
-    _saveCurrentDaySchedule();
   }
 
   void updateAmPm(String amPm) {
     selectedAmPm.value = amPm;
-    _saveCurrentDaySchedule();
   }
 
-  bool hasSchedule(String day) => schedules.containsKey(day);
+  // For Continue button: validate
+  bool get isValid => selectedDays.isNotEmpty && selectedHour.value > 0;
 
-  String getSelectedSchedule() {
-    final data = schedules[currentDay.value];
-    if (data == null) return 'No schedule set';
-    final hour = data['hour'];
-    final minute = data['minute'].toString().padLeft(2, '0');
-    final ampm = data['ampm'];
-    return '$hour:$minute $ampm';
+  // Get formatted time string (e.g., "7:30 AM")
+  String get formattedTime {
+    final minute = selectedMinute.value.toString().padLeft(2, '0');
+    return '${selectedHour.value}:$minute ${selectedAmPm.value}';
+  }
+
+  // Optional: get list of selected days with time
+  List<String> get scheduleSummary {
+    return selectedDays.map((day) => '$day ${formattedTime}').toList();
   }
 
   @override

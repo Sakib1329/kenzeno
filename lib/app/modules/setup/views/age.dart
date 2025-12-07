@@ -179,7 +179,7 @@ class AgeSelectionPage extends StatelessWidget {
                 },
                 title: "Continue",
                 fontSize: 16.sp,
-                height: 35.h,
+                height: 45.h,
                 svgorimage: true,
                 trailing: ImageAssets.svg3,
                 fontFamily: 'WorkSans',

@@ -71,7 +71,7 @@ class Onboard4 extends StatelessWidget {
                   },
                   title: "Next",
                   fontSize: 16.sp,
-                  height: 35.h,
+                  height: 45.h,
 
                   fontFamily: 'WorkSans',
                   radius: 20.r,

@@ -1,0 +1,289 @@
+// lib/app/modules/community/controllers/forum_controller.dart
+
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
+import '../../../constants/appconstants.dart';
+import '../models/post_modeel.dart';
+
+import '../../../res/colors/colors.dart';
+
+class ForumController extends GetxController {
+  final box = GetStorage();
+
+  var isLoading = true.obs;
+  var posts = <ForumPost>[].obs;
+  var comments = <ForumComment>[].obs;
+  var isPosting = false.obs;
+  var isLoadingComments = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchPosts();
+  }
+
+  Future<void> fetchPosts({bool showLoading = true}) async {
+    if (showLoading) isLoading(true);
+    try {
+      final token = box.read("loginToken");
+      if (token == null) throw Exception("Not logged in");
+
+      final response = await http.get(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-posts/"),
+        headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        final List<dynamic> results = jsonResponse['results'] ?? [];
+        final fetched = results.map((e) => ForumPost.fromJson(e)).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        posts.assignAll(fetched);
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Failed to load posts",
+          backgroundColor: AppColor.redDC2626, colorText: Colors.white);
+    } finally {
+      if (showLoading) isLoading(false);
+    }
+  }
+
+  Future<void> fetchComments(int postId) async {
+    final token = box.read("loginToken");
+    if (token == null) return;
+
+    try {
+      isLoadingComments.value = true;
+      final response = await http.get(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-comments/$postId/"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      print("Comments response: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> json = jsonDecode(utf8.decode(response.bodyBytes));
+
+        // THIS IS THE ONLY LINE YOU WERE MISSING
+        final List<dynamic> results = json['results'] ?? [];
+
+        comments.assignAll(
+          results
+              .map((e) => ForumComment.fromJson(e as Map<String, dynamic>))
+              .toList()
+            ..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+        );
+
+        print("First comment avatar: ${comments.isEmpty ? 'none' : comments.first.avatar}");
+      }
+    } catch (e) {
+      print("Fetch comments error: $e");
+      comments.clear();
+    } finally {
+      isLoadingComments.value = false;
+    }
+  }
+
+  Future<bool> createComment({required int postId, required String content}) async {
+    final token = box.read("loginToken");
+    if (token == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-comment-create/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"post": postId, "content": content.trim()}),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Update comment count locally
+        final index = posts.indexWhere((p) => p.id == postId);
+        if (index != -1) {
+          posts[index] = posts[index].copyWith(comments: posts[index].comments + 1);
+          posts.refresh();
+        }
+
+        await fetchComments(postId); // Refresh comments
+        return true;
+      }
+    } catch (e) {
+      print("Create comment error: $e");
+    }
+    return false;
+  }
+
+  Future<bool> updateForumPost({required int postId, required String newContent}) async {
+    final token = box.read("loginToken");
+    if (token == null) return false;
+
+    try {
+      isPosting.value = true;
+      final response = await http.patch(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-posts/$postId/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"content": newContent.trim()}),
+      );
+
+      if (response.statusCode == 200) {
+        final index = posts.indexWhere((p) => p.id == postId);
+        if (index != -1) {
+          posts[index] = posts[index].copyWith(content: newContent.trim());
+          posts.refresh();
+        }
+        Get.snackbar("Updated!", "Post edited", backgroundColor: AppColor.green22C55E, colorText: Colors.white);
+        return true;
+      }
+    } catch (e) {
+      print("Update error: $e");
+    } finally {
+      isPosting.value = false;
+    }
+    return false;
+  }
+
+  Future<bool> deleteForumPost({required int postId}) async {
+    final token = box.read("loginToken");
+    if (token == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-posts/$postId/"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        posts.removeWhere((p) => p.id == postId); // Now works perfectly
+        Get.snackbar("Deleted", "Post removed", backgroundColor: AppColor.green22C55E, colorText: Colors.white);
+        return true;
+      }
+    } catch (e) {
+      print("Delete error: $e");
+      Get.snackbar("Error", "Failed to delete", backgroundColor: AppColor.redDC2626);
+    }
+    return false;
+  }
+  // EDIT COMMENT
+  Future<bool> updateComment({required int commentId, required String newContent}) async {
+    final token = box.read("loginToken");
+    if (token == null) return false;
+
+    try {
+      final response = await http.patch(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-comment/$commentId/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"content": newContent.trim()}),
+      );
+print(response.statusCode);
+      if (response.statusCode == 200) {
+        final index = comments.indexWhere((c) => c.id == commentId);
+        if (index != -1) {
+          comments[index] = ForumComment(
+            id: comments[index].id,
+            postId: comments[index].postId,
+            userName: comments[index].userName,
+            avatar: comments[index].avatar,
+            content: newContent.trim(),
+            createdAt: comments[index].createdAt,
+          );
+          comments.refresh();
+        }
+        Get.snackbar("Updated", "Comment edited", backgroundColor: AppColor.green22C55E, colorText: Colors.white);
+        return true;
+      }
+    } catch (e) {
+      print("Update comment error: $e");
+    }
+    return false;
+  }
+
+  // DELETE COMMENT
+  Future<bool> deleteComment({required int commentId, required int postId}) async {
+    final token = box.read("loginToken");
+    if (token == null) return false;
+
+    try {
+      final response = await http.delete(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-comment/$commentId/"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      if (response.statusCode == 204 || response.statusCode == 200) {
+        comments.removeWhere((c) => c.id == commentId);
+        comments.refresh();
+
+        // Update post's comment count
+        final postIndex = posts.indexWhere((p) => p.id == postId);
+        if (postIndex != -1 && posts[postIndex].comments > 0) {
+          posts[postIndex] = posts[postIndex].copyWith(comments: posts[postIndex].comments - 1);
+          posts.refresh();
+        }
+
+        Get.snackbar("Deleted", "Comment removed", backgroundColor: AppColor.green22C55E, colorText: Colors.white);
+        return true;
+      }
+    } catch (e) {
+      print("Delete comment error: $e");
+    }
+    return false;
+  }
+  // FIXED: Optimistic + instant UI update
+  Future<bool> createForumPost({required String content}) async {
+    final token = box.read("loginToken");
+    if (token == null) {
+      Get.snackbar("Error", "Login required");
+      return false;
+    }
+
+    try {
+      isPosting.value = true;
+
+      final response = await http.post(
+        Uri.parse("${AppConstants.baseUrl}/community/forum-posts/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"content": content.trim()}),
+      );
+
+      if (response.statusCode == 201) {
+        final newPostJson = jsonDecode(response.body);
+        final newPost = ForumPost.fromJson(newPostJson);
+
+        // INSTANTLY ADD TO TOP
+        posts.insert(0, newPost);
+        posts.refresh();
+
+        Get.snackbar("Success", "Posted!", backgroundColor: AppColor.green22C55E, colorText: Colors.white);
+
+        // Optional: sync after 1 sec
+        Future.delayed(const Duration(seconds: 1), () => fetchPosts(showLoading: false));
+
+        return true;
+      } else {
+        Get.snackbar("Failed", "Could not post", backgroundColor: AppColor.redDC2626);
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Check connection");
+      print("Post error: $e");
+    } finally {
+      isPosting.value = false;
+    }
+    return false;
+  }
+
+  Future<void> refreshPosts() => fetchPosts();
+}

@@ -191,7 +191,7 @@ Get.to(CommunityPage(),transition: Transition.rightToLeft);
                     SizedBox(height: 24.h),
                     GestureDetector(
                         onTap: (){
-Get.to(Dailychallenge(),transition: Transition.rightToLeft);
+Get.to(DailyChallenge(),transition: Transition.rightToLeft);
                         },
                         child: _buildDailyChallenge()),
                     SizedBox(height: 24.h),
@@ -227,7 +227,7 @@ Get.to(Dailychallenge(),transition: Transition.rightToLeft);
               ),
               GestureDetector(
                 onTap: () {
-Get.to(Recommendation(),transition: Transition.rightToLeft);
+                  Get.to(() => Recommendation(), transition: Transition.rightToLeft);
                 },
                 child: Row(
                   children: [
@@ -240,45 +240,68 @@ Get.to(Recommendation(),transition: Transition.rightToLeft);
                     ),
                     SizedBox(width: 5.w),
                     SvgPicture.asset(
-                      ImageAssets.svg23, // Arrow right icon
+                      ImageAssets.svg23,
                       height: 10.h,
+                      color: Colors.white,
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
         SizedBox(height: 16.h),
-        // Horizontal list of cards using the existing WorkoutCardWidget
-        SizedBox(
-          // Set a fixed height that accommodates the vertical card layout
-          height: 180.h,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            itemCount: controller.recommendations.length,
-            separatorBuilder: (_, __) => SizedBox(width: 15.w),
-            itemBuilder: (context, index) {
-              final item = controller.recommendations[index];
 
-              // **Using the provided WorkoutCardWidget**
-              return Container(
-                // Constrain the width for the horizontal list view items
-                width: 160.w,
-                child: WorkoutCardWidget(
-                  title: item['title']!,
-                  duration: item['duration']!,
-                  exercises: item['exercises']!,
-                  imagePath: item['imagePath']!,
+        // Loading state
+        Obx(() {
+          if (controller.isLoading.value) {
+            return SizedBox(
+              height: 180.h,
+              child: Center(child: CircularProgressIndicator(color: AppColor.customPurple)),
+            );
+          }
+
+          if (controller.recommendedWorkouts.isEmpty) {
+            return SizedBox(
+              height: 180.h,
+              child: Center(
+                child: Text(
+                  "No recommendations yet",
+                  style: TextStyle(color: AppColor.gray9CA3AF, fontSize: 14.sp),
                 ),
-              );
-            },
-          ),
-        ),
+              ),
+            );
+          }
+
+          return SizedBox(
+            height: 200.h, // enough space for card + shadow
+            child: ListView.separated(
+              padding: EdgeInsets.symmetric(horizontal: 10.w),
+              scrollDirection: Axis.horizontal,
+              itemCount: controller.recommendedWorkouts.length,
+              separatorBuilder: (_, __) => SizedBox(width: 15.w),
+              itemBuilder: (context, index) {
+                final workout = controller.recommendedWorkouts[index];
+
+                return Container(
+                  width: 160.w,
+                  child: WorkoutCardWidget(
+                    title: workout.name,
+                    duration: workout.estimatedDuration,
+                    exercises: "${workout.exerciseCount} exercises",
+                    // Always pass a valid URL (network) or valid asset path
+                    imagePath: workout.image ?? ImageAssets.img_12,
+
+                  ),
+                );
+              },
+            ),
+          );
+        }),
       ],
     );
   }
+
   Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 16.h),

@@ -11,10 +11,6 @@ import '../../../res/fonts/textstyle.dart';
 import '../../../widgets/custom_button.dart';
 import '../controllers/setup_controller.dart';
 
-
-
-
-// NEW: Goal selection container with SVG and checkmark logic
 class _GoalSelectionButton extends StatelessWidget {
   final String goalKey;
   final String title;
@@ -177,7 +173,7 @@ class GoalSelectionPage extends StatelessWidget {
                 },
                 title: "Continue",
                 fontSize: 16,
-                height: 35.h,
+                height: 45.h,
                 svgorimage: true,
                 trailing: ImageAssets.svg3,
                 fontFamily: 'WorkSans',

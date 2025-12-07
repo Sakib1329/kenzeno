@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kenzeno/app/modules/workout/views/workoutdetails.dart';
+import 'package:kenzeno/app/res/colors/colors.dart';
 
 import '../model/workoutmodel.dart';
 import '../services/workout_services.dart';
@@ -72,6 +73,44 @@ Get.to(WorkoutDetailsScreen());
     } catch (e) {
       Get.back();
       Get.snackbar("Error", e.toString());
+    }
+  }
+
+  Future<void> trackWorkoutProgress({
+    required int userWorkoutId,
+    int? userExerciseId,
+  }) async {
+    try {
+      Get.dialog(
+        const Center(
+            child: CircularProgressIndicator(color: AppColor.customPurple)),
+        barrierDismissible: false,
+      );
+
+      await _service.trackProgress(
+        userWorkoutId: userWorkoutId,
+        userExerciseId: userExerciseId,
+      );
+
+      Get.snackbar(
+        "Success",
+        "Workout progress saved!",
+        backgroundColor: AppColor.green22C55E,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Optional: refresh data or update UI state
+      // loadAllWorkouts();
+
+    } catch (e) {
+      Get.back();
+      Get.snackbar(
+        "Error",
+        e.toString(),
+        backgroundColor: Colors.red[800],
+        colorText: Colors.white,
+      );
     }
   }
 }

@@ -57,7 +57,9 @@ class WorkoutDetailsScreen extends StatelessWidget {
                 child: TrainingOfTheDayCard(
                   headtitle: workout.name,
                   title: workout.name,
-                  imagePath: workout.image.isNotEmpty ? workout.image : ImageAssets.img_12,
+            imagePath: workout.image?.isNotEmpty == true
+                ? workout.image!
+                  : ImageAssets.img_12,
                   duration: workout.estimatedDuration,
                   calories: workout.estimatedCalories,
                   exercises: "${workout.exerciseCount} Exercises",
@@ -85,7 +87,7 @@ class WorkoutDetailsScreen extends StatelessWidget {
                 step: exercise, // Pass the real UserExercise object
                 onTap: () {
                   Get.to(
-                        () => ExerciseDetailsScreen(),
+                        () => ExerciseDetailsScreen(workutid: workout.id,),
                     transition: Transition.rightToLeft,
                   );
                 },

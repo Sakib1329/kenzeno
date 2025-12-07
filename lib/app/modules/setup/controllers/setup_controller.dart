@@ -1,122 +1,102 @@
 import 'package:get/get.dart';
 
 class SetupController extends GetxController {
-  // --- General Setup State ---
+
   var selectedGender = ''.obs;
   var selectedAge = 18.obs;
-
   var selectedActivityLevel = ''.obs;
-
-
   var selectedGoal = ''.obs;
 
   var weightUnit = 'kg'.obs;
-  var weight = 70.0.obs; // Default weight
+  var weight = 70.0.obs;
   var hasScrolledWeight = false.obs;
 
-
+  // --- Height State ---
   var heightUnit = 'cm'.obs;
-  var height = 175.0.obs; // Default height (175 cm)
-  var hasScrolledHeight = false.obs; // Tracks interaction with height ruler
+  var height = 175.0.obs; // Always stored in CM internally
+  var hasScrolledHeight = false.obs;
+
+  // Feet/Inches display string (only used for UI)
+  final RxString heightInFeetInches = ''.obs;
 
   // ------------------------------------------------------------------
-  // --- Goal Logic ---
+  // --- Goal & Activity Level (unchanged) ---
   // ------------------------------------------------------------------
   void selectGoal(String goal) {
-    selectedGoal.value = goal;
+  selectedGoal.value = goal;
   }
 
-  // ------------------------------------------------------------------
-  // --- Activity Level Logic ---
-  // ------------------------------------------------------------------
   void selectActivityLevel(String level) {
-    selectedActivityLevel.value = level;
+  selectedActivityLevel.value = level;
   }
 
-
-
+  // ------------------------------------------------------------------
+  // --- Weight Logic (unchanged) ---
+  // ------------------------------------------------------------------
   void toggleWeightUnit() {
-    // Basic conversion logic (1 kg ≈ 2.20462 lbs)
-    if (weightUnit.value == 'kg') {
-      weightUnit.value = 'lbs';
-      // Convert kg to lbs
-      weight.value = (weight.value * 2.20462).roundToDouble();
-    } else {
-      weightUnit.value = 'kg';
-      // Convert lbs to kg
-      weight.value = (weight.value / 2.20462).roundToDouble();
-    }
+  if (weightUnit.value == 'kg') {
+  weightUnit.value = 'lbs';
+  weight.value = (weight.value * 2.20462).roundToDouble();
+  } else {
+  weightUnit.value = 'kg';
+  weight.value = (weight.value / 2.20462).roundToDouble();
+  }
   }
 
   void setWeight(double newWeight) {
-    if (!hasScrolledWeight.value) {
-      hasScrolledWeight.value = true;
-    }
-    weight.value = newWeight;
+  if (!hasScrolledWeight.value) {
+  hasScrolledWeight.value = true;
+  }
+  weight.value = newWeight;
   }
 
   // ------------------------------------------------------------------
-  // --- Height Logic ---
+  // --- Height Logic — FIXED & ACCURATE NOW ---
   // ------------------------------------------------------------------
-
-  // ------------------------------------------------------------------
-// --- Height Logic (SetupController) ---
-// ------------------------------------------------------------------
-
-// Assuming you have these Rx variables in your SetupController:
-// RxString heightUnit = 'cm'.obs;
-// RxDouble height = 165.0.obs; // Initial value in cm
-// RxBool hasScrolledHeight = false.obs;
-
-
   void toggleHeightUnit() {
-    const double cmToFeetFactor = 0.0328084;
-    const double feetToCmFactor = 30.48;
-
-    if (heightUnit.value == 'cm') {
-      // Current unit is CM, switching to FEET
-      heightUnit.value = 'feet';
-
-      // Convert cm to feet (round to one decimal place for feet for display)
-      double newHeightFeet = height.value * cmToFeetFactor;
-
-      // Use string formatting to round to 1 decimal place, then parse back
-      height.value = double.parse(newHeightFeet.toStringAsFixed(1));
-
-    } else {
-      // Current unit is FEET, switching to CM
-      heightUnit.value = 'cm';
-
-      // Convert feet to cm
-      double newHeightCm = height.value / cmToFeetFactor;
-      // Round cm to the nearest whole number
-      height.value = newHeightCm.roundToDouble();
-    }
+  if (heightUnit.value == 'cm') {
+  // Convert CM → Feet & Inches (for display)
+  heightUnit.value = 'feet';
+  updateFeetInchesDisplay();
+  } else {
+  // Convert back to CM
+  heightUnit.value = 'cm';
+  }
+  update(); // Refresh UI
   }
 
-  void setHeight(double newHeight) {
-    if (!hasScrolledHeight.value) {
-      hasScrolledHeight.value = true;
-    }
-    // Ensure we round the height value based on the current unit
-    if (heightUnit.value == 'cm') {
-      // CM: Round to nearest whole number
-      height.value = newHeight.roundToDouble();
-    } else {
-      // Feet: Round to one decimal place
-      height.value = double.parse(newHeight.toStringAsFixed(1));
-    }
+  void setHeight(double cmValue) {
+  // Always store in CM internally
+  height.value = cmValue.roundToDouble();
+
+  if (!hasScrolledHeight.value) {
+  hasScrolledHeight.value = true;
   }
 
-// Optional: You might want a separate method for setting the 'scrolled' status
+  // Update feet/inches string if in feet mode
+  if (heightUnit.value == 'feet') {
+  updateFeetInchesDisplay();
+  }
+  }
+
+  // Helper: converts current height (cm) → "5'9\""
+  void updateFeetInchesDisplay() {
+    final totalInches = height.value / 2.54;
+    final feet = totalInches ~/ 12;
+    final inches = (totalInches % 12).round();
+    heightInFeetInches.value = "$feet'$inches\"";
+  }
+
   void setHeightScrolled(bool scrolled) {
-    hasScrolledHeight.value = scrolled;
+  hasScrolledHeight.value = scrolled;
   }
 
-  //profile
+  // ------------------------------------------------------------------
+  // --- Profile (unchanged) ---
+  // ------------------------------------------------------------------
   var fullName = ''.obs;
   var nickName = ''.obs;
-  var profileImagePath = ''.obs; // Placeholder for image logic
+  var profileImagePath = ''.obs;
 
   void setFullName(String value) => fullName.value = value;
   void setNickName(String value) => nickName.value = value;
@@ -124,6 +104,6 @@ class SetupController extends GetxController {
   RxString selectedTrainer = ''.obs;
 
   void selectTrainer(String name) {
-    selectedTrainer.value = name;
+  selectedTrainer.value = name;
   }
 }
