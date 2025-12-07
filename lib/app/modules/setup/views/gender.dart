@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:kenzeno/app/modules/home/views/navbar.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
 import 'package:kenzeno/app/res/colors/colors.dart';
 import 'package:kenzeno/app/widgets/backbutton_widget.dart';
@@ -125,8 +126,7 @@ class Gender extends StatelessWidget {
             Spacer(),
             CustomButton(
               onPress: () async{
-
-                Get.to(Gender(),transition: Transition.rightToLeft);
+                Get.offAll(Navbar(),transition: Transition.rightToLeft);
               },
               title: "Prefer to skip! thanks",
               fontSize: 12.sp,
@@ -157,6 +157,7 @@ class Gender extends StatelessWidget {
                 return; // stop execution
               }
 else{
+  print(controller.selectedGender.value);
                 Get.to(
                   AgeSelectionPage(),
                   transition: Transition.rightToLeft,

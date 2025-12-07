@@ -47,7 +47,6 @@ class WeightInputPage extends StatelessWidget {
               Center(
                 child: Text(
                   'What is your weight?',
-                  // ⭐️ Assuming AppTextStyles is the class name in textstyle.dart
                   style: AppTextStyles.poppinsBold.copyWith(
                     fontSize: 28.sp,
                     color: AppColor.white,
@@ -57,19 +56,17 @@ class WeightInputPage extends StatelessWidget {
 
               SizedBox(height: 40.h),
 
-              // Unit Toggle (kg/lbs)
+
               _buildUnitToggle(),
 
               SizedBox(height: 60.h),
 
-              // Weight Value Display and Ruler
               _buildWeightSelector(context),
 
    SizedBox(height: 100,),
 
               // Continue Button
               Obx(() => CustomButton(
-                // ⭐️ CONTROLLER FIX: Use hasScrolledWeight
                 onPress: controller.hasScrolledWeight.value ? () async {
                  Get.to(HeightInputPage(),transition: Transition.rightToLeft);
                   print('Weight selected: ${controller.weight.value} ${controller.weightUnit.value}');
@@ -94,10 +91,6 @@ class WeightInputPage extends StatelessWidget {
       ),
     );
   }
-
-  // ----------------------------------------------------------------
-  // --- Unit Toggle Widgets (Updated to use SetupController) ---
-  // ----------------------------------------------------------------
 
   Widget _buildUnitToggle() {
     return Obx(() {
@@ -147,21 +140,12 @@ class WeightInputPage extends StatelessWidget {
         ));
   }
 
-  // ----------------------------------------------------------------
-  // --- Ruler Selector Widget (Updated to use SetupController) ---
-  // ----------------------------------------------------------------
-
-// ----------------------------------------------------------------
-// --- Ruler Selector Widget (Updated to use SetupController) ---
-// ----------------------------------------------------------------
-
   Widget _buildWeightSelector(BuildContext context) {
-    // ⭐️ CONTROLLER FIX: Use controller.weight for initial page calculation
+
     int initialPage = ((controller.weight.value - minWeight) * 10).toInt();
 
     final double rulerWidth = MediaQuery.of(context).size.width - (20.w * 2);
 
-    // Using the 20.w from the previous fix for tick width
     const double tickPixelWidth = 20;
 
     return Column(

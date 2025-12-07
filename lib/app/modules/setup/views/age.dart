@@ -171,6 +171,7 @@ class AgeSelectionPage extends StatelessWidget {
                     return;
                   }
                   else{
+                    print(controller.selectedAge.value);
                     Get.to(
                       WeightInputPage(),
                       transition: Transition.rightToLeft,

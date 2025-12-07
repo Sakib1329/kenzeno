@@ -172,7 +172,7 @@ class GoalSelectionPage extends StatelessWidget {
                   }
                 },
                 title: "Continue",
-                fontSize: 16,
+                fontSize: 16.sp,
                 height: 45.h,
                 svgorimage: true,
                 trailing: ImageAssets.svg3,

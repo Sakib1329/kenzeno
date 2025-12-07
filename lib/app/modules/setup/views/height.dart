@@ -130,11 +130,11 @@ class HeightInputPage extends StatelessWidget {
                     Expanded(
                       flex: 4,
                       child: Obx(() => SvgPicture.asset(
-                        controller.selectedGender.value == 'Male'
+                        controller.selectedGender.value == 'male'
                             ? ImageAssets.svg69   // Male SVG
                             : ImageAssets.svg70,     // Female SVG
                         fit: BoxFit.contain,
-                        color: AppColor.white.withOpacity(0.9),
+                        color: AppColor.customPurple,
                       )),
                     ),
                   ],
@@ -146,8 +146,12 @@ class HeightInputPage extends StatelessWidget {
               // Continue Button
               Obx(() => CustomButton(
                 onPress: controller.hasScrolledHeight.value
-                    ? ()async => Get.to(() => ChooseSchedulePage(),
-                    transition: Transition.rightToLeft)
+                    ? ()async { Get.to(() => ChooseSchedulePage(),
+                    transition: Transition.rightToLeft);
+                print(controller.height.value);
+                }
+
+
                     : null,
                 title: "Continue",
                 fontSize: 16.sp,
