@@ -125,6 +125,7 @@ class ActivityLevelPage extends StatelessWidget {
                     );
                     return; // stop execution
                   } else {
+                    print(controller.selectedActivityLevel.value);
 Get.to(Bodyanalysis(),transition: Transition.rightToLeft);
                   }
                 },

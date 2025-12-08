@@ -9,6 +9,7 @@ import 'package:kenzeno/app/modules/auth/controllers/authcontroller.dart';
 import '../../../constants/appconstants.dart';
 
 import '../controllers/setup_controller.dart';
+import '../models/coach_model.dart';
 
 class SetupService extends GetxService {
   final box = GetStorage();
@@ -56,6 +57,26 @@ class SetupService extends GetxService {
       print("Setup failed: ${response.statusCode} ${response.body}");
       Get.snackbar("Error", "Failed to save profile", backgroundColor: Colors.redAccent, colorText: Colors.white);
       return false;
+    }
+  }
+
+  Future<List<Coach>> fetchCoaches() async {
+    final token = box.read("loginToken");
+    if (token == null) throw Exception("Not logged in");
+
+    final response = await http.get(
+      Uri.parse("${AppConstants.baseUrl}/coaches/"), // change if your endpoint is different
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = jsonDecode(utf8.decode(response.bodyBytes));
+      return jsonList.map((json) => Coach.fromJson(json)).toList();
+    } else {
+      throw Exception("Failed to load coaches: ${response.statusCode}");
     }
   }
 }

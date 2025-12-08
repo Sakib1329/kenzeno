@@ -132,13 +132,13 @@ class GoalSelectionPage extends StatelessWidget {
 
               // Goal Selection Buttons
               _GoalSelectionButton(
-                goalKey: 'lose_weight',
+                goalKey: 'weight_loss',
                 title: 'I wanna lose weight',
                 svg: ImageAssets.svg8,
                 controller: controller,
               ),
               _GoalSelectionButton(
-                goalKey: 'ai_coach',
+                goalKey: 'try_ai_coach',
                 title: 'I wanna try AI Coach',
                 svg: ImageAssets.svg9,
                 controller: controller,
@@ -168,6 +168,7 @@ class GoalSelectionPage extends StatelessWidget {
                     );
                     return;
                   } else {
+                    print(controller.selectedGoal.value);
                     Get.to(() => ActivityLevelPage(), transition: Transition.rightToLeft);
                   }
                 },

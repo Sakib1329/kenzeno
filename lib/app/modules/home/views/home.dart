@@ -198,7 +198,7 @@ Get.to(DailyChallenge(),transition: Transition.rightToLeft);
                     // 🚨 NEW RECOMMENDATIONS SECTION 🚨
                     _buildRecommendationsSection(),
                     SizedBox(height: 24.h),
-                    _buildArticlesSection(),
+                    _buildArticlesSection(controller),
 
                   ],
                 ),
@@ -622,7 +622,7 @@ Get.to(DailyChallenge(),transition: Transition.rightToLeft);
     );
   }
 
-  Widget _buildArticlesSection() {
+  Widget _buildArticlesSection(HomeController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -639,8 +639,11 @@ Get.to(DailyChallenge(),transition: Transition.rightToLeft);
                 ),
               ),
               GestureDetector(
-                onTap:(){
-                  Get.to(ResourcesTabScreen(),transition: Transition.rightToLeft);
+                onTap: () {
+                  Get.to(
+                    ResourcesTabScreen(),
+                    transition: Transition.rightToLeft,
+                  );
                 },
                 child: Row(
                   children: [
@@ -651,28 +654,38 @@ Get.to(DailyChallenge(),transition: Transition.rightToLeft);
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(width: 5.w,),
-                    SvgPicture.asset(ImageAssets.svg23,height: 10.h,)
+                    SizedBox(width: 5.w),
+                    SvgPicture.asset(ImageAssets.svg23, height: 10.h),
                   ],
                 ),
               )
             ],
           ),
         ),
+
         SizedBox(height: 16.h),
-        // In your UI
+
         SizedBox(
           height: 240.h,
-          child: ListView.separated(
+
+          // ⭐ DEFAULT MESSAGE WHEN EMPTY
+          child: controller.articles.isEmpty
+              ? Center(
+            child: Text(
+              "No articles available",
+              style: AppTextStyles.poppinsRegular.copyWith(
+                fontSize: 16.sp,
+                color: Colors.white,
+              ),
+            ),
+          )
+              : ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             itemCount: controller.articles.length,
-            separatorBuilder: (_, __) => SizedBox(width: 16.w), // spacing between items
+            separatorBuilder: (_, __) => SizedBox(width: 16.w),
             itemBuilder: (context, index) {
-              final item = controller.articless[index]; // map with imagePath & title
-              final imagePath = item['imagePath']!;
-              final title = item['title']!;
-              final filled = controller.isFilled[index];
+              final article = controller.articles[index];
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -680,7 +693,7 @@ Get.to(DailyChallenge(),transition: Transition.rightToLeft);
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Image Container
+                      // ⭐ ARTICLE IMAGE
                       Container(
                         width: 160.w,
                         height: 130.h,
@@ -692,49 +705,66 @@ Get.to(DailyChallenge(),transition: Transition.rightToLeft);
                             bottomRight: Radius.circular(20.r),
                           ),
                           image: DecorationImage(
-                            image: AssetImage(imagePath),
+                            image: NetworkImage(article.mediaUrl ?? ""),
                             fit: BoxFit.cover,
+                            onError: (e, s) {},
                           ),
                         ),
                       ),
 
-                      // Star Icon
+                      // ⭐ Optional favorite button
                       Positioned(
                         top: 6.h,
                         right: 6.w,
                         child: GestureDetector(
                           onTap: () => controller.toggleFilled(index),
-                          child: SvgPicture.asset(ImageAssets.svg33,
-
-                            color: filled ?AppColor.customPurple :Colors.white,
+                          child: SvgPicture.asset(
+                            ImageAssets.svg33,
+                            color: controller.isFilled[index]
+                                ? AppColor.customPurple
+                                : Colors.white,
                             height: 20.h,
                           ),
                         ),
                       ),
                     ],
                   ),
+
                   SizedBox(height: 8.h),
-                  Center(
+
+                  // ⭐ Title
+                  SizedBox(
+                    width: 150.w,
                     child: Text(
-                      title,
+                      article.title,
                       style: AppTextStyles.poppinsMedium.copyWith(
                         fontSize: 14.sp,
                         color: Colors.white,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                  SizedBox(height: 5.h),
+
+                  // ⭐ Category
+                  Text(
+                    article.category ?? "",
+                    style: AppTextStyles.poppinsRegular.copyWith(
+                      fontSize: 12.sp,
+                      color: Colors.grey,
                     ),
                   ),
                 ],
               );
             },
           ),
-        )
-
-
-
-
+        ),
       ],
     );
   }
+
+
 }

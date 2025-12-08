@@ -1,7 +1,12 @@
+import 'package:flutter/animation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kenzeno/app/modules/setup/service/service.dart';
+
+import '../models/coach_model.dart';
 
 class SetupController extends GetxController {
-
+  final SetupService _service = Get.find<SetupService>();
   var selectedGender = ''.obs;
   var selectedAge = 18.obs;
   var selectedActivityLevel = ''.obs;
@@ -106,4 +111,28 @@ class SetupController extends GetxController {
   void selectTrainer(String name) {
   selectedTrainer.value = name;
   }
+
+  var isLoading = true.obs;
+  var coaches = <Coach>[].obs;
+  var selectedCoachId = Rxn<int>();
+
+  Future<void> fetchCoaches() async {
+    try {
+      isLoading(true);
+      final list = await _service.fetchCoaches();
+      coaches.assignAll(list);
+    } catch (e) {
+      Get.snackbar("Error", "Could not load coaches",
+          backgroundColor: Color(0xFFDC2626), colorText: Colors.white);
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  void selectCoach(int coachId) {
+    selectedCoachId.value = coachId;
+  }
+
+  bool isSelected(int coachId) => selectedCoachId.value == coachId;
+
 }

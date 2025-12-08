@@ -1,5 +1,8 @@
 // setting_service.dart
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/get_navigation.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import '../../../constants/appconstants.dart';
@@ -155,6 +158,82 @@ class SettingService {
       return json['content'] as String? ?? "No content available.";
     } else {
       throw Exception("Failed to load privacy policy (${response.statusCode})");
+    }
+  }
+
+  Future<String?> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    final token = box.read("loginToken");
+    if (token == null) {
+      Get.snackbar("Error", "You are not logged in", backgroundColor: Colors.redAccent);
+      return null;
+    }
+
+    final payload = {
+      "old_password": oldPassword,
+      "new_password": newPassword,
+      "confirm_password": confirmPassword,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse("${AppConstants.baseUrl}/accounts/change-password/"),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(payload),
+      );
+
+      final Map<String, dynamic> data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Success
+        Get.snackbar(
+          "Success",
+          data["message"] ?? "Password changed successfully",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+        return "success";
+      }
+
+      // Handle errors
+      if (data.containsKey("non_field_errors")) {
+        Get.snackbar(
+          "Oops",
+          data["non_field_errors"][0],
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      } else if (data.containsKey("error")) {
+        Get.snackbar(
+          "Error",
+          data["error"],
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar(
+          "Error",
+          "Something went wrong. Please try again.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+
+      return null;
+    } catch (e) {
+      Get.snackbar(
+        "Network Error",
+        "Please check your connection",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return null;
     }
   }
 }

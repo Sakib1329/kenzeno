@@ -12,6 +12,7 @@ import 'package:kenzeno/app/modules/setting/controller/setting_controller.dart';
 import 'package:kenzeno/app/modules/setting/service/setting_service.dart';
 import 'package:kenzeno/app/modules/setup/controllers/bottomsheetcontroller.dart';
 import 'package:kenzeno/app/modules/setup/controllers/schedule_controller.dart';
+import 'package:kenzeno/app/modules/setup/service/service.dart';
 import 'package:kenzeno/app/modules/workout/controllers/workoutcontroller.dart';
 import 'package:kenzeno/app/modules/workout/services/workout_services.dart';
 
@@ -31,7 +32,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
-
+  Get.put(SetupService());
   Get.put(OnboardController());
   Get.put(BottomSheetController());
   Get.put(SetupController());
@@ -44,6 +45,7 @@ Get.put(WorkoutController());
   Get.put(VideoCleanupHelper(), permanent: true);
   Get.put(SettingService());
 Get.put(Settingcontroller());
+
   runApp(const MyApp());
 }
 

@@ -1,48 +1,25 @@
+// lib/app/modules/setup/views/coach_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:kenzeno/app/modules/setup/controllers/setup_controller.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
 import 'package:kenzeno/app/widgets/backbutton_widget.dart';
 
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
-import '../../../widgets/custom_button.dart';
-import '../../../widgets/textfield.dart';
-import '../controllers/setup_controller.dart';
 import '../widgets/trainercard.dart';
 
 class CoachPage extends StatelessWidget {
-  final SetupController controller = Get.find();
+  final SetupController controller = Get.find<SetupController>();
 
   CoachPage({Key? key}) : super(key: key);
-
-  final List<Map<String, String>> coaches = [
-    {
-      'image': ImageAssets.img_11,
-      'name': 'John',
-      'subtitle': 'Tough love, no excuses, big results',
-    },
-    {
-      'image': ImageAssets.img_12,
-      'name': 'Emma',
-      'subtitle': 'Positive energy, strong mindset, real change',
-    },
-    {
-      'image': ImageAssets.img_13,
-      'name': 'Alex',
-      'subtitle': 'Precision, focus, and progress every day',
-    },
-    {
-      'image': ImageAssets.img_14,
-      'name': 'Sophia',
-      'subtitle': 'Motivation meets discipline, always improving',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // adjust to your theme
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -80,24 +57,30 @@ class CoachPage extends StatelessWidget {
 
               // Grid of Trainer Cards
               Expanded(
-                child: GridView.builder(
-                  padding: EdgeInsets.only(bottom: 20.h),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 20.h,
-                    crossAxisSpacing: 16.w,
-                    childAspectRatio: 2 / 3, // same as your image aspect
-                  ),
-                  itemCount: coaches.length,
-                  itemBuilder: (context, index) {
-                    final coach = coaches[index];
-                    return TrainerCard(
-                      imagePath: coach['image']!,
-                      name: coach['name']!,
-                      subtitle: coach['subtitle']!,
-                    );
-                  },
-                ),
+                child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return Center(child: CircularProgressIndicator(color: AppColor.customPurple));
+                  }
+
+                  return GridView.builder(
+                    padding: EdgeInsets.only(bottom: 20.h),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 20.h,
+                      crossAxisSpacing: 16.w,
+                      childAspectRatio: 2 / 3,
+                    ),
+                    itemCount: controller.coaches.length,
+                    itemBuilder: (context, index) {
+                      final coach = controller.coaches[index];
+                      return TrainerCard(
+                        imagePath: ImageAssets.img_11,
+                        name: coach.name,
+                        subtitle: coach.behavior,
+                      );
+                    },
+                  );
+                }),
               ),
             ],
           ),
@@ -106,6 +89,3 @@ class CoachPage extends StatelessWidget {
     );
   }
 }
-
-
-

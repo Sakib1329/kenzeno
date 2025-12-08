@@ -33,23 +33,6 @@ class Recommendation extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Training of the Day (you can keep static or make dynamic later)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Container(
-              color: AppColor.customPurple,
-              padding: EdgeInsets.all(12.w),
-              child: TrainingOfTheDayCard(
-                headtitle: "Dumbbell Step up",
-                title: "Dumbbell Step up",
-                imagePath: ImageAssets.img_20,
-                duration: "25 min",
-                calories: "120",
-                exercises: "12 rep",
-                ontap: () {},
-              ),
-            ),
-          ),
 
           Padding(
             padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 8.h),

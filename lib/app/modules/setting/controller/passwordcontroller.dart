@@ -1,45 +1,58 @@
+// lib/app/modules/profile/controllers/change_password_controller.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-
-import '../../../res/colors/colors.dart';
+import 'package:kenzeno/app/modules/setting/service/setting_service.dart';
 
 class PasswordController extends GetxController {
-  final currentPasswordController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmNewPasswordController = TextEditingController();
+  final SettingService service = Get.find();
 
-  // Toggles for password visibility (assuming the eye icon handles this)
-  var isCurrentPasswordVisible = false.obs;
-  var isNewPasswordVisible = false.obs;
-  var isConfirmPasswordVisible = false.obs;
+  var oldPassword = ''.obs;
+  var newPassword = ''.obs;
+  var confirmPassword = ''.obs;
 
-  void toggleVisibility(RxBool visibility) {
-    visibility.value = !visibility.value;
-  }
+  var isLoading = false.obs;
+  var showOld = false.obs;
+  var showNew = false.obs;
+  var showConfirm = false.obs;
 
-  void changePassword() {
-    // Implement password change logic here (e.g., API call, validation)
-    if (newPasswordController.text != confirmNewPasswordController.text) {
-      Get.snackbar(
-        "Error",
-        "New passwords do not match.",
-        backgroundColor: Colors.red.withOpacity(0.8),
-        colorText: Colors.white,
-      );
-      return;
-    }
-    // Placeholder for actual logic
-    print("Password change attempt:");
-    print("Current: ${currentPasswordController.text}");
-    print("New: ${newPasswordController.text}");
+  bool get passwordsMatch => newPassword.value == confirmPassword.value;
 
-    Get.snackbar(
-      "Success",
-      "Password updated successfully!",
-      backgroundColor: AppColor.customPurple,
-      colorText: Colors.white,
+  bool get isValid =>
+      oldPassword.value.isNotEmpty &&
+          newPassword.value.isNotEmpty &&
+          confirmPassword.value.isNotEmpty &&
+          newPassword.value.length >= 8 &&
+          passwordsMatch;
+
+  Future<void> submit() async {
+
+    isLoading(true);
+
+    final result = await service.changePassword(
+      oldPassword: oldPassword.value,
+      newPassword: newPassword.value,
+      confirmPassword: confirmPassword.value,
     );
+
+    isLoading(false);
+
+    if (result == "success") {
+      Get.snackbar(
+        "Success",
+        "Password changed successfully",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+
+      // Clear fields
+      oldPassword.value = '';
+      newPassword.value = '';
+      confirmPassword.value = '';
+
+      Get.back(); // close screen
+    }
+
   }
 }

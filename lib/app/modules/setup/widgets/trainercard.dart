@@ -1,10 +1,11 @@
+// lib/app/modules/setup/widgets/trainercard.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:kenzeno/app/modules/setup/controllers/setup_controller.dart';
-
 
 import '../../setting/views/subscription.dart';
+import '../controllers/setup_controller.dart';
 
 class TrainerCard extends StatelessWidget {
   final String imagePath;
@@ -19,6 +20,14 @@ class TrainerCard extends StatelessWidget {
     required this.subtitle,
   }) : super(key: key);
 
+  // This map matches your dummy data to backend IDs
+  final Map<String, int> coachNameToId = {
+    'John': 1,
+    'Emma': 2,
+    'Alex': 3,
+    'Sophia': 4,
+  };
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
@@ -26,8 +35,11 @@ class TrainerCard extends StatelessWidget {
 
       return GestureDetector(
         onTap: () {
-          controller.selectTrainer(name); // Save the trainer name
-          Get.to(() => Subscription(), transition: Transition.rightToLeft); // Navigate
+          controller.selectTrainer(name); // saves the name (already working)
+          // NEW LINE — saves the ID for backend
+          controller.selectedCoachId.value = coachNameToId[name] ?? 1;
+
+          Get.to(() => Subscription(), transition: Transition.rightToLeft);
         },
         child: Container(
           width: 360.w,
