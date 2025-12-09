@@ -1,6 +1,9 @@
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:get/get.dart';
@@ -18,6 +21,7 @@ import 'package:kenzeno/app/modules/setup/service/service.dart';
 import 'package:kenzeno/app/modules/workout/controllers/workoutcontroller.dart';
 import 'package:kenzeno/app/modules/workout/services/workout_services.dart';
 
+import 'app/constants/push_notification.dart';
 import 'app/modules/onboard/controllers/onboard_controller.dart';
 
 
@@ -26,11 +30,20 @@ import 'app/modules/setup/controllers/setup_controller.dart';
 import 'app/modules/workout/views/excercisedetails.dart';
 import 'app/res/colors/colors.dart';
 
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+FlutterLocalNotificationsPlugin();
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('🔔 Handling background message: ${message.messageId}');
+}
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await GetStorage.init();
+  await initFCM();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);

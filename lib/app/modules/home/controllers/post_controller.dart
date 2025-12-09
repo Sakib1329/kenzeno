@@ -104,14 +104,11 @@ class ForumController extends GetxController {
         },
         body: jsonEncode({"post": id}),
       );
+print(response.statusCode);
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
 refreshPosts();
 
-      } else {
 
-        Get.snackbar("Failed", "Could not update like", backgroundColor: AppColor.redDC2626);
-      }
     } catch (e) {
 
       Get.snackbar("Error", "Check your connection", backgroundColor: AppColor.redDC2626);

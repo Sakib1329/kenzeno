@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:kenzeno/app/constants/push_notification.dart';
 import 'package:kenzeno/app/modules/auth/views/otp.dart';
 import 'package:kenzeno/app/modules/home/views/navbar.dart';
 import 'package:kenzeno/app/modules/setup/views/setup.dart';
@@ -221,7 +222,7 @@ class Authcontroller extends GetxController {
             style: AppTextStyles.workSansRegular.copyWith(color: AppColor.white),
           ),
         );
-
+await initFCM();
         Get.offAll(() => Navbar(), transition: Transition.rightToLeft);
       }
       else {
