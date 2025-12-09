@@ -100,15 +100,15 @@ class DiscussionForumPage extends StatelessWidget {
                 Obx(() => Column(
                   children: controller.posts.map((post) => PostCard(
                     key: ValueKey(post.id), // Helps Flutter delete the correct card
-                    avatarUrl:
-                    "https://ui-avatars.com/api/?name=${Uri.encodeComponent(post.userName)}&background=6B46C1&color=fff",
+                    avatarUrl:post.avatar ??"https://ui-avatars.com/api/?name=${Uri.encodeComponent(post.userName)}&background=6B46C1&color=fff",
                     name: post.userName,
                     content: post.content,
                     favoriteCount: post.likes,
                     commentCount: post.comments, // Now shows real count!
-                    isFavorited: false,
+                    isFavorited: post.isLiked,
+                    isowner: post.isOwner,
                     onFavoriteTap: () {
-                      print("Like tapped on post ${post.id}");
+controller.toggleLike(post.id);
                     },
                     postId: post.id,
                     onEditComplete: (newText) {

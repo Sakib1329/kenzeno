@@ -18,6 +18,8 @@ class PostCard extends StatefulWidget {
   final int favoriteCount;
   final int commentCount;
   final bool isFavorited;
+  final bool isowner;
+
   final VoidCallback? onFavoriteTap;
   final Function(String)? onEditComplete;
 
@@ -32,6 +34,7 @@ class PostCard extends StatefulWidget {
     this.isFavorited = false,
     this.onFavoriteTap,
     this.onEditComplete,
+    required this.isowner,
   }) : super(key: key);
 
   @override
@@ -46,85 +49,138 @@ class _PostCardState extends State<PostCard> {
     var isSaving = false.obs;
 
     Get.bottomSheet(
-      Obx(() => WillPopScope(
-        onWillPop: () async => !isSaving.value,
-        child: Container(
-          padding: EdgeInsets.all(20.w),
-          decoration: BoxDecoration(
-            color: AppColor.gray1F2937,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(height: 4.h, width: 40.w, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
-              SizedBox(height: 20.h),
-              Text("Edit Post", style: AppTextStyles.poppinsBold.copyWith(color: Colors.white, fontSize: 20.sp)),
-              SizedBox(height: 20.h),
-              TextField(
-                controller: controller,
-                maxLines: 8,
-                enabled: !isSaving.value,
-                style: TextStyle(color: Colors.white, fontSize: 16.sp),
-                decoration: InputDecoration(
-                  hintText: "What's on your mind?",
-                  hintStyle: TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: AppColor.black111214,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16.r), borderSide: BorderSide.none),
-                  contentPadding: EdgeInsets.all(16.r),
+      Obx(
+        () => WillPopScope(
+          onWillPop: () async => !isSaving.value,
+          child: Container(
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: AppColor.gray1F2937,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 4.h,
+                  width: 40.w,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              SizedBox(height: 20.h),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: isSaving.value ? null : () => Get.back(),
-                      child: Text("Cancel", style: TextStyle(color: isSaving.value ? AppColor.gray9CA3AF.withOpacity(0.4) : AppColor.gray9CA3AF, fontSize: 16.sp)),
-                    ),
+                SizedBox(height: 20.h),
+                Text(
+                  "Edit Post",
+                  style: AppTextStyles.poppinsBold.copyWith(
+                    color: Colors.white,
+                    fontSize: 20.sp,
                   ),
-                  SizedBox(width: 10.w),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColor.customPurple,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                ),
+                SizedBox(height: 20.h),
+                TextField(
+                  controller: controller,
+                  maxLines: 8,
+                  enabled: !isSaving.value,
+                  style: TextStyle(color: Colors.white, fontSize: 16.sp),
+                  decoration: InputDecoration(
+                    hintText: "What's on your mind?",
+                    hintStyle: TextStyle(color: Colors.white54),
+                    filled: true,
+                    fillColor: AppColor.black111214,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.r),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: EdgeInsets.all(16.r),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: isSaving.value ? null : () => Get.back(),
+                        child: Text(
+                          "Cancel",
+                          style: TextStyle(
+                            color: isSaving.value
+                                ? AppColor.gray9CA3AF.withOpacity(0.4)
+                                : AppColor.gray9CA3AF,
+                            fontSize: 16.sp,
+                          ),
+                        ),
                       ),
-                      onPressed: isSaving.value ? null : () async {
-                        final newText = controller.text.trim();
-                        if (newText.isEmpty) {
-                          Get.snackbar("Empty", "Post cannot be empty", backgroundColor: AppColor.redDC2626, colorText: Colors.white);
-                          return;
-                        }
-                        if (newText == currentContent) {
-                          Get.back();
-                          return;
-                        }
-
-                        isSaving.value = true;
-                        final success = await Get.find<ForumController>().updateForumPost(postId: widget.postId, newContent: newText);
-                        isSaving.value = false;
-
-                        if (success) {
-                          setState(() => currentContent = newText);
-                          widget.onEditComplete?.call(newText);
-                          Get.back();
-                        }
-                      },
-                      child: isSaving.value
-                          ? SizedBox(height: 20.h, width: 20.w, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : Text("Save", style: TextStyle(color: Colors.white, fontSize: 16.sp)),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20.h),
-            ],
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColor.customPurple,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                        ),
+                        onPressed: isSaving.value
+                            ? null
+                            : () async {
+                                final newText = controller.text.trim();
+                                if (newText.isEmpty) {
+                                  Get.snackbar(
+                                    "Empty",
+                                    "Post cannot be empty",
+                                    backgroundColor: AppColor.redDC2626,
+                                    colorText: Colors.white,
+                                  );
+                                  return;
+                                }
+                                if (newText == currentContent) {
+                                  Get.back();
+                                  return;
+                                }
+
+                                isSaving.value = true;
+                                final success =
+                                    await Get.find<ForumController>()
+                                        .updateForumPost(
+                                          postId: widget.postId,
+                                          newContent: newText,
+                                        );
+                                isSaving.value = false;
+
+                                if (success) {
+                                  setState(() => currentContent = newText);
+                                  widget.onEditComplete?.call(newText);
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                        child: isSaving.value
+                            ? SizedBox(
+                                height: 20.h,
+                                width: 20.w,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                "Save",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16.sp,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.h),
+              ],
+            ),
           ),
         ),
-      )),
+      ),
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
     );
@@ -135,7 +191,7 @@ class _PostCardState extends State<PostCard> {
     final commentCtrl = TextEditingController();
     final scrollCtrl = ScrollController();
 
-     controller.fetchComments(widget.postId);
+    controller.fetchComments(widget.postId);
 
     Get.bottomSheet(
       Container(
@@ -149,13 +205,25 @@ class _PostCardState extends State<PostCard> {
             // Header
             Container(
               padding: EdgeInsets.all(16.r),
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white10))),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.white10)),
+              ),
               child: Row(
                 children: [
-                  Obx(() => Text("Comments (${controller.comments.length})",
-                      style: AppTextStyles.poppinsBold.copyWith(color: Colors.white, fontSize: 20.sp))),
+                  Obx(
+                    () => Text(
+                      "Comments (${controller.comments.length})",
+                      style: AppTextStyles.poppinsBold.copyWith(
+                        color: Colors.white,
+                        fontSize: 20.sp,
+                      ),
+                    ),
+                  ),
                   Spacer(),
-                  IconButton(icon: Icon(Icons.close, color: Colors.white), onPressed: () => Get.back()),
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Get.back(),
+                  ),
                 ],
               ),
             ),
@@ -164,10 +232,19 @@ class _PostCardState extends State<PostCard> {
             Expanded(
               child: Obx(() {
                 if (controller.isLoadingComments.value) {
-                  return Center(child: CircularProgressIndicator(color: AppColor.customPurple));
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: AppColor.customPurple,
+                    ),
+                  );
                 }
                 if (controller.comments.isEmpty) {
-                  return Center(child: Text("No comments yet", style: TextStyle(color: AppColor.gray9CA3AF)));
+                  return Center(
+                    child: Text(
+                      "No comments yet",
+                      style: TextStyle(color: AppColor.gray9CA3AF),
+                    ),
+                  );
                 }
 
                 return ListView.builder(
@@ -181,19 +258,26 @@ class _PostCardState extends State<PostCard> {
                       padding: EdgeInsets.only(bottom: 16.h),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
+
                         children: [
                           // Avatar with fallback
                           CircleAvatar(
                             radius: 16.r,
                             backgroundColor: AppColor.customPurple,
-                            backgroundImage: c.avatar != null && c.avatar!.isNotEmpty
+                            backgroundImage:
+                                c.avatar != null && c.avatar!.isNotEmpty
                                 ? NetworkImage(c.avatar!)
                                 : null,
                             child: c.avatar == null || c.avatar!.isEmpty
                                 ? Text(
-                              c.userName.isNotEmpty ? c.userName[0].toUpperCase() : "A",
-                              style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                            )
+                                    c.userName.isNotEmpty
+                                        ? c.userName[0].toUpperCase()
+                                        : "A",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                    ),
+                                  )
                                 : null,
                           ),
                           SizedBox(width: 12.w),
@@ -201,105 +285,308 @@ class _PostCardState extends State<PostCard> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      c.userName,
-                                      style: AppTextStyles.poppinsSemiBold.copyWith(color: Colors.white, fontSize: 14.sp),
-                                    ),
-                                    Spacer(),
-                                    // EDIT & DELETE MENU — ALWAYS VISIBLE
-                                    PopupMenuButton<String>(
-                                      icon: Icon(Icons.more_vert, color: Colors.white70, size: 18.sp),
-                                      color: AppColor.gray1F2937,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                                      onSelected: (value) async {
-                                        if (value == 'edit') {
-                                          final editCtrl = TextEditingController(text: c.content);
-                                          Get.dialog(
-                                            AlertDialog(
-                                              backgroundColor: AppColor.gray1F2937,
-                                              title: Text("Edit Comment", style: TextStyle(color: Colors.white)),
-                                              content: TextField(
-                                                controller: editCtrl,
-                                                maxLines: 4,
-                                                style: TextStyle(color: Colors.white),
-                                                decoration: InputDecoration(
-                                                  filled: true,
-                                                  fillColor: AppColor.black111214,
-                                                  border: OutlineInputBorder(borderSide: BorderSide.none),
-                                                  contentPadding: EdgeInsets.all(12.r),
-                                                ),
+                                c.isOwner
+                                    ? SizedBox(
+                                        height: 20.h,
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            // Username
+                                            Expanded(
+                                              child: Text(
+                                                c.userName,
+                                                style: AppTextStyles
+                                                    .poppinsSemiBold
+                                                    .copyWith(
+                                                      color: Colors.white,
+                                                      fontSize: 14.sp,
+                                                    ),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Get.back(),
-                                                  child: Text("Cancel", style: TextStyle(color: AppColor.gray9CA3AF)),
+                                            ),
+
+                                            // Popup Menu (no extra space!)
+                                            PopupMenuButton<String>(
+                                              padding: EdgeInsets.zero,
+                                              splashRadius:
+                                                  1, // removes ripple padding
+                                              constraints:
+                                                  BoxConstraints(), // prevents default min width
+                                              offset: Offset(
+                                                0,
+                                                20,
+                                              ), // optional: better dropdown position
+                                              icon: Icon(
+                                                Icons.more_vert,
+                                                color: Colors.white70,
+                                                size: 18.sp,
+                                              ),
+
+                                              color: AppColor.gray1F2937,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12.r),
+                                              ),
+
+                                              onSelected: (value) async {
+                                                if (value == 'edit') {
+                                                  final editCtrl =
+                                                      TextEditingController(
+                                                        text: c.content,
+                                                      );
+
+                                                  await Get.dialog(
+                                                    AlertDialog(
+                                                      backgroundColor:
+                                                          AppColor.gray1F2937,
+                                                      title: Text(
+                                                        "Edit Comment",
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                      content: TextField(
+                                                        controller: editCtrl,
+                                                        maxLines: 4,
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                        decoration: InputDecoration(
+                                                          filled: true,
+                                                          fillColor: AppColor
+                                                              .black111214,
+                                                          border:
+                                                              OutlineInputBorder(
+                                                                borderSide:
+                                                                    BorderSide
+                                                                        .none,
+                                                              ),
+                                                          contentPadding:
+                                                              EdgeInsets.all(
+                                                                12.r,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Get.back(),
+                                                          child: Text(
+                                                            "Cancel",
+                                                            style: TextStyle(
+                                                              color: AppColor
+                                                                  .gray9CA3AF,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Obx(
+                                                          () => TextButton(
+                                                            onPressed:
+                                                                controller
+                                                                    .isLoadingComments
+                                                                    .value
+                                                                ? null
+                                                                : () async {
+                                                                    final newText =
+                                                                        editCtrl
+                                                                            .text
+                                                                            .trim();
+                                                                    if (newText
+                                                                        .isEmpty) {
+                                                                      Get.snackbar(
+                                                                        "Error",
+                                                                        "Comment cannot be empty",
+                                                                        backgroundColor:
+                                                                            AppColor.redDC2626,
+                                                                      );
+                                                                      return;
+                                                                    }
+
+                                                                    controller
+                                                                            .isLoadingComments
+                                                                            .value =
+                                                                        true;
+
+                                                                    final success = await controller.updateComment(
+                                                                      commentId:
+                                                                          c.id,
+                                                                      newContent:
+                                                                          newText,
+                                                                    );
+
+                                                                    controller
+                                                                            .isLoadingComments
+                                                                            .value =
+                                                                        false;
+
+                                                                    if (success) {
+                                                                      Navigator.of(
+                                                                        context,
+                                                                      ).pop();
+                                                                    }
+                                                                  },
+                                                            child:
+                                                                controller
+                                                                    .isLoadingComments
+                                                                    .value
+                                                                ? SizedBox(
+                                                                    width: 18.w,
+                                                                    height:
+                                                                        18.h,
+                                                                    child: CircularProgressIndicator(
+                                                                      color: Colors
+                                                                          .white,
+                                                                      strokeWidth:
+                                                                          2.0,
+                                                                    ),
+                                                                  )
+                                                                : Text(
+                                                                    "Save",
+                                                                    style: TextStyle(
+                                                                      color: AppColor
+                                                                          .green22C55E,
+                                                                    ),
+                                                                  ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+
+                                                if (value == 'delete') {
+                                                  // Close popup before delete dialog
+
+                                                  final confirm =
+                                                      await Get.dialog<bool>(
+                                                        AlertDialog(
+                                                          backgroundColor:
+                                                              AppColor
+                                                                  .gray1F2937,
+                                                          title: Text(
+                                                            "Delete Comment?",
+                                                            style: TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                            ),
+                                                          ),
+                                                          content: Text(
+                                                            "This cannot be undone.",
+                                                            style: TextStyle(
+                                                              color: AppColor
+                                                                  .gray9CA3AF,
+                                                            ),
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Get.back(
+                                                                    result:
+                                                                        false,
+                                                                  ),
+                                                              child: Text(
+                                                                "Cancel",
+                                                              ),
+                                                            ),
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Get.back(
+                                                                    result:
+                                                                        true,
+                                                                  ),
+                                                              child: Text(
+                                                                "Delete",
+                                                                style: TextStyle(
+                                                                  color: AppColor
+                                                                      .redDC2626,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+
+                                                  if (confirm == true) {
+                                                    await controller
+                                                        .deleteComment(
+                                                          commentId: c.id,
+                                                          postId: widget.postId,
+                                                        );
+                                                  }
+                                                }
+                                              },
+
+                                              itemBuilder: (_) => [
+                                                PopupMenuItem(
+                                                  value: 'edit',
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.edit_outlined,
+                                                        size: 18,
+                                                        color: Colors.white,
+                                                      ),
+                                                      SizedBox(width: 8.w),
+                                                      Text(
+                                                        "Edit",
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                                TextButton(
-                                                  onPressed: () async {
-                                                    final newText = editCtrl.text.trim();
-                                                    if (newText.isEmpty) {
-                                                      Get.snackbar("Error", "Comment cannot be empty", backgroundColor: AppColor.redDC2626);
-                                                      return;
-                                                    }
-                                                    final success = await controller.updateComment(
-                                                      commentId: c.id,
-                                                      newContent: newText,
-                                                    );
-                                                    if (success) Get.back();
-                                                  },
-                                                  child: Text("Save", style: TextStyle(color: AppColor.green22C55E)),
+                                                PopupMenuItem(
+                                                  value: 'delete',
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.delete_outline,
+                                                        size: 18,
+                                                        color:
+                                                            AppColor.redDC2626,
+                                                      ),
+                                                      SizedBox(width: 8.w),
+                                                      Text(
+                                                        "Delete",
+                                                        style: TextStyle(
+                                                          color: AppColor
+                                                              .redDC2626,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ],
                                             ),
-                                          );
-                                        }
-                                        if (value == 'delete') {
-                                          final confirm = await Get.dialog<bool>(
-                                            AlertDialog(
-                                              backgroundColor: AppColor.gray1F2937,
-                                              title: Text("Delete Comment?", style: TextStyle(color: Colors.white)),
-                                              content: Text("This cannot be undone.", style: TextStyle(color: AppColor.gray9CA3AF)),
-                                              actions: [
-                                                TextButton(onPressed: () => Get.back(result: false), child: Text("Cancel")),
-                                                TextButton(
-                                                  onPressed: () => Get.back(result: true),
-                                                  child: Text("Delete", style: TextStyle(color: AppColor.redDC2626)),
-                                                ),
-                                              ],
+                                          ],
+                                        ),
+                                      )
+                                    : Text(
+                                        c.userName,
+                                        style: AppTextStyles.poppinsSemiBold
+                                            .copyWith(
+                                              color: Colors.white,
+                                              fontSize: 14.sp,
                                             ),
-                                          );
-                                          if (confirm == true) {
-                                            await controller.deleteComment(commentId: c.id, postId: widget.postId);
-                                          }
-                                        }
-                                      },
-                                      itemBuilder: (_) => [
-                                        PopupMenuItem(
-                                          value: 'edit',
-                                          child: Row(children: [
-                                            Icon(Icons.edit_outlined, size: 18, color: Colors.white),
-                                            SizedBox(width: 8.w),
-                                            Text("Edit", style: TextStyle(color: Colors.white)),
-                                          ]),
-                                        ),
-                                        PopupMenuItem(
-                                          value: 'delete',
-                                          child: Row(children: [
-                                            Icon(Icons.delete_outline, size: 18, color: AppColor.redDC2626),
-                                            SizedBox(width: 8.w),
-                                            Text("Delete", style: TextStyle(color: AppColor.redDC2626)),
-                                          ]),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                      ),
+                                SizedBox(height: 5.h),
+                                Text(
+                                  c.content,
+                                  style: TextStyle(
+                                    color: AppColor.white,
+                                    fontSize: 14.sp,
+                                  ),
                                 ),
-                                SizedBox(height: 6.h),
-                                Text(c.content, style: TextStyle(color: Colors.white, fontSize: 14.sp)),
                                 SizedBox(height: 4.h),
-                                Text(_timeAgo(c.createdAt), style: TextStyle(color: AppColor.gray9CA3AF, fontSize: 12.sp)),
+                                Text(
+                                  _timeAgo(c.createdAt),
+                                  style: TextStyle(
+                                    color: AppColor.gray9CA3AF,
+                                    fontSize: 12.sp,
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -330,7 +617,10 @@ class _PostCardState extends State<PostCard> {
                         border: InputBorder.none,
                         filled: true,
                         fillColor: AppColor.black111214.withOpacity(0.3),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 12.h,
+                        ),
                       ),
                     ),
                   ),
@@ -339,20 +629,34 @@ class _PostCardState extends State<PostCard> {
                     onTap: () async {
                       final text = commentCtrl.text.trim();
                       if (text.isEmpty) return;
-                      final success = await controller.createComment(postId: widget.postId, content: text);
+                      final success = await controller.createComment(
+                        postId: widget.postId,
+                        content: text,
+                      );
                       if (success) {
                         commentCtrl.clear();
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           if (scrollCtrl.hasClients) {
-                            scrollCtrl.animateTo(0, duration: 300.milliseconds, curve: Curves.easeOut);
+                            scrollCtrl.animateTo(
+                              0,
+                              duration: 300.milliseconds,
+                              curve: Curves.easeOut,
+                            );
                           }
                         });
                       }
                     },
                     child: Container(
                       padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(color: AppColor.customPurple, shape: BoxShape.circle),
-                      child: Icon(Icons.send_rounded, color: Colors.white, size: 20.sp),
+                      decoration: BoxDecoration(
+                        color: AppColor.customPurple,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20.sp,
+                      ),
                     ),
                   ),
                 ],
@@ -400,40 +704,97 @@ class _PostCardState extends State<PostCard> {
                 backgroundColor: AppColor.gray1F2937,
               ),
               SizedBox(width: 12.w),
-              Text(widget.name, style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 14.sp)),
+              Text(
+                widget.name,
+                style: AppTextStyles.poppinsBold.copyWith(
+                  color: AppColor.white,
+                  fontSize: 14.sp,
+                ),
+              ),
               Spacer(),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_horiz, color: AppColor.white.withOpacity(0.6)),
-                color: AppColor.gray1F2937,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                onSelected: (value) async {
-                  if (value == 'edit') _showEditModal();
-                  if (value == 'delete') {
-                    final confirmed = await Get.dialog<bool>(
-                      AlertDialog(
-                        backgroundColor: AppColor.gray1F2937,
-                        title: Text("Delete Post?"),
-                        content: Text("This action cannot be undone.", style: TextStyle(color: AppColor.gray9CA3AF)),
-                        actions: [
-                          TextButton(onPressed: () => Get.back(result: false), child: Text("Cancel")),
-                          TextButton(onPressed: () => Get.back(result: true), child: Text("Delete", style: TextStyle(color: AppColor.redDC2626))),
+              if (widget.isowner)
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_horiz,
+                    color: AppColor.white.withOpacity(0.6),
+                  ),
+                  color: AppColor.gray1F2937,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  onSelected: (value) async {
+                    if (value == 'edit') _showEditModal();
+                    if (value == 'delete') {
+                      final confirmed = await Get.dialog<bool>(
+                        AlertDialog(
+                          backgroundColor: AppColor.gray1F2937,
+                          title: Text(
+                            "Delete Post?",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          content: Text(
+                            "This action cannot be undone.",
+                            style: TextStyle(color: AppColor.gray9CA3AF),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(result: false),
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () => Get.back(result: true),
+                              child: Text(
+                                "Delete",
+                                style: TextStyle(color: AppColor.redDC2626),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true) {
+                        await Get.find<ForumController>().deleteForumPost(
+                          postId: widget.postId,
+                        );
+                      }
+                    }
+                  },
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, color: Colors.white),
+                          SizedBox(width: 12.w),
+                          Text("Edit", style: TextStyle(color: Colors.white)),
                         ],
                       ),
-                    );
-                    if (confirmed == true) {
-                      await Get.find<ForumController>().deleteForumPost(postId: widget.postId);
-                    }
-                  }
-                },
-                itemBuilder: (_) => [
-                  PopupMenuItem(value: 'edit', child: Row(children: [Icon(Icons.edit_outlined, color: Colors.white), SizedBox(width: 12.w), Text("Edit", style: TextStyle(color: Colors.white))])),
-                  PopupMenuItem(value: 'delete', child: Row(children: [Icon(Icons.delete_outline, color: AppColor.redDC2626), SizedBox(width: 12.w), Text("Delete", style: TextStyle(color: AppColor.redDC2626))])),
-                ],
-              ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, color: AppColor.redDC2626),
+                          SizedBox(width: 12.w),
+                          Text(
+                            "Delete",
+                            style: TextStyle(color: AppColor.redDC2626),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
           SizedBox(height: 16.h),
-          Text(currentContent, style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.white, fontSize: 12.sp, height: 1.5)),
+          Text(
+            currentContent,
+            style: AppTextStyles.poppinsRegular.copyWith(
+              color: AppColor.white,
+              fontSize: 12.sp,
+              height: 1.5,
+            ),
+          ),
           SizedBox(height: 20.h),
           Row(
             children: [
@@ -443,10 +804,23 @@ class _PostCardState extends State<PostCard> {
                   children: [
                     AnimatedSwitcher(
                       duration: Duration(milliseconds: 300),
-                      child: SvgPicture.asset(ImageAssets.svg33, height: 15.h),
+                      child: SvgPicture.asset(ImageAssets.svg33, height: 15.h,
+                        colorFilter: widget.isFavorited == true
+                            ? ColorFilter.mode(AppColor.purpleRoyal, BlendMode.srcIn)
+                            : ColorFilter.mode(Colors.grey, BlendMode.srcIn),
+
+                      ),
                     ),
                     SizedBox(width: 8.w),
-                    Text(_formatCount(widget.favoriteCount), style: AppTextStyles.poppinsMedium.copyWith(color: widget.isFavorited ? AppColor.purpleRoyal : AppColor.white.withOpacity(0.7), fontSize: 12.sp)),
+                    Text(
+                      _formatCount(widget.favoriteCount),
+                      style: AppTextStyles.poppinsMedium.copyWith(
+                        color: widget.isFavorited
+                            ? AppColor.purpleRoyal
+                            : AppColor.white.withOpacity(0.7),
+                        fontSize: 12.sp,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -455,9 +829,19 @@ class _PostCardState extends State<PostCard> {
                 onTap: _showCommentsPopup,
                 child: Row(
                   children: [
-                    Icon(Icons.chat_outlined, color: AppColor.customPurple, size: 20.sp),
+                    Icon(
+                      Icons.chat_outlined,
+                      color: AppColor.customPurple,
+                      size: 20.sp,
+                    ),
                     SizedBox(width: 8.w),
-                    Text(_formatCount(widget.commentCount), style: AppTextStyles.poppinsMedium.copyWith(color: AppColor.white.withOpacity(0.7), fontSize: 14.sp)),
+                    Text(
+                      _formatCount(widget.commentCount),
+                      style: AppTextStyles.poppinsMedium.copyWith(
+                        color: AppColor.white.withOpacity(0.7),
+                        fontSize: 14.sp,
+                      ),
+                    ),
                   ],
                 ),
               ),

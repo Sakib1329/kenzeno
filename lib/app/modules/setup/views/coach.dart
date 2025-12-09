@@ -18,6 +18,7 @@ class CoachPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    controller.fetchCoaches();
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -73,8 +74,18 @@ class CoachPage extends StatelessWidget {
                     itemCount: controller.coaches.length,
                     itemBuilder: (context, index) {
                       final coach = controller.coaches[index];
+
+
+                      final String imagePath = switch (coach.id) {
+                        1 => ImageAssets.img_11,
+                        2 => ImageAssets.img_12,
+                        3 => ImageAssets.img_13,
+                        4 => ImageAssets.img_14,
+                        _ => ImageAssets.img_11,
+                      };
+
                       return TrainerCard(
-                        imagePath: ImageAssets.img_11,
+                        imagePath: imagePath,
                         name: coach.name,
                         subtitle: coach.behavior,
                       );

@@ -280,7 +280,7 @@ class Authcontroller extends GetxController {
             style: AppTextStyles.workSansRegular.copyWith(color: AppColor.background),
           ),
         );
-Get.offAll(OtpVerification(email: emailController.text, fromPage: "signup"));
+Get.offAll(OtpVerification(email: emailController.text, fromPage: "signup"),transition: Transition.rightToLeft);
       } else {
         throw 'Registration failed';
       }

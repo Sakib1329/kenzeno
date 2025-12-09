@@ -6,7 +6,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:kenzeno/app/modules/auth/controllers/authcontroller.dart';
+import 'package:kenzeno/app/modules/home/controllers/calender_controller.dart';
 import 'package:kenzeno/app/modules/home/controllers/navcontroller.dart';
+import 'package:kenzeno/app/modules/home/service/home_service.dart';
 import 'package:kenzeno/app/modules/setting/controller/profilecontroller.dart';
 import 'package:kenzeno/app/modules/setting/controller/setting_controller.dart';
 import 'package:kenzeno/app/modules/setting/service/setting_service.dart';
@@ -33,10 +35,12 @@ void main() async {
     DeviceOrientation.portraitUp,
   ]);
   Get.put(SetupService());
+  Get.put(HomeService());
   Get.put(OnboardController());
   Get.put(BottomSheetController());
   Get.put(SetupController());
 Get.put(Authcontroller());
+Get.put(GalleryController());
 Get.put(NavController());
 Get.put(ScheduleController());
 Get.put(ProfileController());

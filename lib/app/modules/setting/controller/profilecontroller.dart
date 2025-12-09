@@ -31,15 +31,21 @@ class ProfileController extends GetxController {
       final fetchedProfile = await _service.fetchProfile();
       profile.value = fetchedProfile;
     } catch (e) {
-      Get.snackbar('Error', e.toString(), backgroundColor: Colors.red);
+      print(e.toString());
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        backgroundColor: Colors.red.withOpacity(0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
   Future<void> updateProfile({
-    String? firstName,
-    String? lastName,
+    String? fullName,
     String? dateOfBirth,
     String? gender,
     double? heightCm,
@@ -52,8 +58,7 @@ class ProfileController extends GetxController {
       isLoading.value = true;
 
       final updatedProfile = await _service.updateProfile(
-        firstName: firstName,
-        lastName: lastName,
+        fullName: fullName,
         dateOfBirth: dateOfBirth,
         gender: gender,
         heightCm: heightCm,
@@ -68,11 +73,20 @@ class ProfileController extends GetxController {
       Get.snackbar(
         'Success',
         'Profile updated successfully!',
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.green.withOpacity(0.9),
         colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      Get.snackbar('Update Failed', e.toString(), backgroundColor: Colors.red);
+
+      Get.snackbar(
+        'Update Failed',
+        e.toString(),
+        backgroundColor: Colors.red.withOpacity(0.9),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     } finally {
       isLoading.value = false;
     }

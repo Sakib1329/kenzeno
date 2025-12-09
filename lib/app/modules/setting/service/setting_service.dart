@@ -13,9 +13,10 @@ class SettingService {
   final box = GetStorage();
 
   // GET: Fetch full profile
+  // GET: Fetch current profile
   Future<ProfileModel> fetchProfile() async {
     final token = box.read('loginToken');
-    if (token == null) throw Exception('No login token found');
+    if (token == null) throw Exception('Authentication required');
 
     final response = await http.get(
       Uri.parse('${AppConstants.baseUrl}/accounts/profile/'),
@@ -26,18 +27,18 @@ class SettingService {
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+
+      final data = jsonDecode(utf8.decode(response.bodyBytes)); // Proper UTF-8 handling
       return ProfileModel.fromJson(data);
     } else {
-      final error = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-      throw Exception(error?['detail'] ?? 'Failed to fetch profile: ${response.statusCode}');
+      final error = _parseError(response);
+      throw Exception(error ?? 'Failed to load profile');
     }
   }
 
-  // PATCH: Update profile (only sends changed fields)
+// PATCH: Update profile - only sends non-null fields
   Future<ProfileModel> updateProfile({
-    String? firstName,
-    String? lastName,
+    String? fullName,
     String? dateOfBirth,
     String? gender,
     double? heightCm,
@@ -47,27 +48,41 @@ class SettingService {
     String? avatar,
   }) async {
     final token = box.read('loginToken');
-    if (token == null) throw Exception('No login token found');
+    if (token == null) throw Exception('Authentication required');
 
     final Map<String, dynamic> body = {};
 
-    if (firstName != null && firstName.isNotEmpty) body['first_name'] = firstName;
-    if (lastName != null && lastName.isNotEmpty) body['last_name'] = lastName;
-    if (dateOfBirth != null && dateOfBirth.isNotEmpty) body['date_of_birth'] = dateOfBirth;
-    if (gender != null && gender.isNotEmpty) body['gender'] = gender;
-    if (heightCm != null) body['height_cm'] = heightCm;
-    if (weightKg != null) body['weight_kg'] = weightKg;
-    if (goal != null && goal.isNotEmpty) body['goal'] = goal;
-    if (activityLevel != null && activityLevel.isNotEmpty) body['activity_level'] = activityLevel;
-    if (avatar != null && avatar.isNotEmpty && avatar != 'null') body['avatar'] = avatar;
+    if (fullName != null && fullName.trim().isNotEmpty) {
+      body['full_name'] = fullName.trim();
+    }
+    if (dateOfBirth != null && dateOfBirth.trim().isNotEmpty) {
+      body['date_of_birth'] = dateOfBirth.trim();
+    }
+    if (gender != null && gender.trim().isNotEmpty) {
+      body['gender'] = gender.trim().toLowerCase();
+    }
+    if (heightCm != null && heightCm > 0) {
+      body['height_cm'] = heightCm;
+    }
+    if (weightKg != null && weightKg > 0) {
+      body['weight_kg'] = weightKg;
+    }
+    if (goal != null && goal.trim().isNotEmpty) {
+      body['goal'] = goal.trim();
+    }
+    if (activityLevel != null && activityLevel.trim().isNotEmpty) {
+      body['activity_level'] = activityLevel.trim();
+    }
+    if (avatar != null && avatar.trim().isNotEmpty && avatar != 'null') {
+      body['avatar'] = avatar.trim();
+    }
 
-    // Remove empty body case
     if (body.isEmpty) {
-      throw Exception('No fields to update');
+      throw Exception('No changes to update');
     }
 
     final response = await http.patch(
-      Uri.parse('${AppConstants.baseUrl}/accounts/profile/update/'), // Fixed endpoint
+      Uri.parse('${AppConstants.baseUrl}/accounts/profile/update/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -76,11 +91,28 @@ class SettingService {
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return ProfileModel.fromJson(data);
     } else {
-      final error = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-      throw Exception(error?['detail'] ?? error ?? 'Update failed: ${response.statusCode}');
+      final error = _parseError(response);
+      throw Exception(error ?? 'Failed to update profile');
+    }
+  }
+
+// Helper: Extract error message from API
+  String? _parseError(http.Response response) {
+    try {
+      final errorBody = jsonDecode(utf8.decode(response.bodyBytes));
+      if (errorBody is Map) {
+        return errorBody['detail'] ??
+            errorBody['full_name']?.first ??
+            errorBody['date_of_birth']?.first ??
+            errorBody['non_field_errors']?.first ??
+            errorBody.toString();
+      }
+      return errorBody.toString();
+    } catch (_) {
+      return response.body.isNotEmpty ? response.body : null;
     }
   }
 

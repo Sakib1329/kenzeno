@@ -1,7 +1,8 @@
 // lib/app/modules/setup/controllers/schedule_controller.dart
 
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 
 class ScheduleController extends GetxController {
   final RxSet<int> selectedDayIds = <int>{}.obs;
@@ -12,7 +13,7 @@ class ScheduleController extends GetxController {
 
   final List<String> dayNames = ['S', 'M', 'T', 'W', 'Th', 'F', 'Sa'];
   final hours = List.generate(12, (i) => i + 1);
-  final minutes = List.generate(60, (i) => 0);
+  final minutes = List.generate(60, (i) => i); // ← fixed: was 0
   final amPmOptions = ['AM', 'PM'];
 
   late FixedExtentScrollController hourController;
@@ -22,17 +23,15 @@ class ScheduleController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    hourController = FixedExtentScrollController(initialItem: 6); // 7 AM
+    hourController = FixedExtentScrollController(initialItem: 6);
     minuteController = FixedExtentScrollController(initialItem: 30);
     amPmController = FixedExtentScrollController(initialItem: 0);
   }
 
   void toggleDay(int dayIndex) {
-    if (selectedDayIds.contains(dayIndex)) {
-      selectedDayIds.remove(dayIndex);
-    } else {
-      selectedDayIds.add(dayIndex);
-    }
+    selectedDayIds.contains(dayIndex)
+        ? selectedDayIds.remove(dayIndex)
+        : selectedDayIds.add(dayIndex);
   }
 
   bool isDaySelected(int index) => selectedDayIds.contains(index);
@@ -41,24 +40,16 @@ class ScheduleController extends GetxController {
   void updateMinute(int minute) => selectedMinute.value = minute;
   void updateAmPm(String amPm) => selectedAmPm.value = amPm;
 
-  // Format: "10:32:36.343Z" (UTC)
+  // FIXED: Backend wants "HH:MM" (24-hour format), NOT ISO string
   String get preferredWorkoutTime {
     final hour24 = selectedAmPm.value == 'AM'
         ? (selectedHour.value == 12 ? 0 : selectedHour.value)
         : (selectedHour.value == 12 ? 12 : selectedHour.value + 12);
 
-    final now = DateTime.now().toUtc();
-    final time = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      hour24,
-      selectedMinute.value,
-    );
-    return "${time.toIso8601String().split('.').first}Z";
+    return "${hour24.toString().padLeft(2, '0')}:${selectedMinute.value.toString().padLeft(2, '0')}";
   }
 
-  // Returns: [0,1,2] → Sunday = 0, Monday = 1, etc.
+  // FIXED: Send as List<int>, NOT string
   List<int> get preferredWorkoutDayIds => selectedDayIds.toList()..sort();
 
   bool get canContinue => selectedDayIds.isNotEmpty;

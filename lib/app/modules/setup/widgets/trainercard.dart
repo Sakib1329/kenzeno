@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../setting/views/subscription.dart';
 import '../controllers/setup_controller.dart';
+import '../service/service.dart';
 
 class TrainerCard extends StatelessWidget {
   final String imagePath;
@@ -34,12 +35,12 @@ class TrainerCard extends StatelessWidget {
       bool isSelected = controller.selectedTrainer.value == name;
 
       return GestureDetector(
-        onTap: () {
+        onTap: () async{
           controller.selectTrainer(name); // saves the name (already working)
           // NEW LINE — saves the ID for backend
           controller.selectedCoachId.value = coachNameToId[name] ?? 1;
-
-          Get.to(() => Subscription(), transition: Transition.rightToLeft);
+          final setupService = Get.find<SetupService>();
+          final success = await setupService.completeSetup();
         },
         child: Container(
           width: 360.w,

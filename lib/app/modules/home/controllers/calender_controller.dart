@@ -100,7 +100,6 @@ class GalleryController extends GetxController {
           duration: const Duration(seconds: 3),
         );
 
-        // Refresh dashboard to show new dot + updated streak
         await fetchGalleryDashboard();
       } else {
         throw Exception("Upload failed – server rejected");

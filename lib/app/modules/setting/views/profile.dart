@@ -1,6 +1,7 @@
 // my_profile_edit_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
@@ -24,28 +25,20 @@ class MyProfileEditScreen extends StatelessWidget {
   final weightController = TextEditingController();
   final heightController = TextEditingController();
 
-  bool _initialized = false;
-
-  void _setupControllers(ProfileModel profile) {
-    if (_initialized) return;
-
-    fullNameController.text = "${profile.firstName ?? ''} ${profile.lastName ?? ''}".trim();
-    emailController.text = profile.email ?? '';
-    mobileController.text = profile.phoneNumber ?? '';
-    dobController.text = profile.dateOfBirth ?? '';
-    weightController.text = profile.weightKg != null
-        ? profile.weightKg!.toStringAsFixed(1)
-        : '';
-    heightController.text = profile.heightCm != null
-        ? profile.heightCm!.toStringAsFixed(1)
-        : '';
-
-    _initialized = true;
-  }
+  // Rank SVG mapping
+  final Map<String, String> rankIcons = {
+    'BRONZE': ImageAssets.svg64,
+    'SILVER': ImageAssets.svg65,
+    'GOLD': ImageAssets.svg66,
+    'PLATINUM': ImageAssets.svg67,
+    'DIAMOND': ImageAssets.svg68,
+  };
 
   @override
   Widget build(BuildContext context) {
+    // Fetch profile on screen open
     controller.fetchProfile();
+
     return Scaffold(
       appBar: AppBar(
         leading: const BackButtonBox(),
@@ -56,6 +49,7 @@ class MyProfileEditScreen extends StatelessWidget {
             color: Colors.white,
           ),
         ),
+        centerTitle: true,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -65,16 +59,18 @@ class MyProfileEditScreen extends StatelessWidget {
         }
 
         final profile = controller.profile.value;
-        _setupControllers(profile);
 
-        ever(controller.profile, (p) {
-          fullNameController.text = "${p.firstName ?? ''} ${p.lastName ?? ''}".trim();
-          emailController.text = p.email ?? '';
-          mobileController.text = p.phoneNumber ?? '';
-          dobController.text = p.dateOfBirth ?? '';
-          weightController.text = p.weightKg != null ? p.weightKg!.toStringAsFixed(1) : '';
-          heightController.text = p.heightCm != null ? p.heightCm!.toStringAsFixed(1) : '';
-        });
+        // Update controllers whenever profile changes
+        if (profile != null) {
+          fullNameController.text = profile.fullName ?? '';
+          emailController.text = profile.email ?? '';
+          mobileController.text = profile.phoneNumber ?? '';
+          dobController.text = profile.dateOfBirth ?? '';
+          weightController.text =
+          profile.weightKg != null ? profile.weightKg!.toStringAsFixed(1) : '';
+          heightController.text =
+          profile.heightCm != null ? profile.heightCm!.toStringAsFixed(1) : '';
+        }
 
         return Column(
           children: [
@@ -86,7 +82,8 @@ class MyProfileEditScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 45.r,
-                        backgroundImage: profile.avatar != null && profile.avatar!.isNotEmpty
+                        backgroundImage: profile?.avatar != null &&
+                            profile!.avatar!.isNotEmpty
                             ? NetworkImage(profile.avatar!)
                             : const AssetImage(ImageAssets.img_3) as ImageProvider,
                         backgroundColor: AppColor.gray9CA3AF,
@@ -99,48 +96,82 @@ class MyProfileEditScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColor.black111214, width: 2.w),
+                            border: Border.all(
+                              color: AppColor.black111214,
+                              width: 2.w,
+                            ),
                           ),
-                          child: Icon(Icons.edit, color: AppColor.customPurple, size: 16.sp),
+                          child: Icon(
+                            Icons.edit,
+                            color: AppColor.customPurple,
+                            size: 16.sp,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   SizedBox(height: 8.h),
+
+                  // Full Name
                   Text(
-                    fullNameController.text.isEmpty ? "Your Name" : fullNameController.text,
-                    style: AppTextStyles.poppinsSemiBold.copyWith(color: Colors.white, fontSize: 18.sp),
+                    fullNameController.text.isEmpty
+                        ? "Your Name"
+                        : fullNameController.text,
+                    style: AppTextStyles.poppinsSemiBold.copyWith(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                    ),
                   ),
+
+                  // Email
                   Text(
-                    profile.email ?? 'your@email.com',
-                    style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.white30, fontSize: 14.sp),
+                    profile?.email ?? 'your@email.com',
+                    style: AppTextStyles.poppinsRegular.copyWith(
+                      color: AppColor.white30,
+                      fontSize: 14.sp,
+                    ),
                   ),
+
+                  // Birthday
                   Text(
-                    profile.dateOfBirth == null
+                    profile?.dateOfBirth == null
                         ? "Birthday: Not set"
-                        : "Birthday: ${_formatBirthday(profile.dateOfBirth!)}",
-                    style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.purpleCCC2FF, fontSize: 14.sp),
+                        : "Birthday: ${_formatBirthday(profile!.dateOfBirth!)}",
+                    style: AppTextStyles.poppinsRegular.copyWith(
+                      color: AppColor.purpleCCC2FF,
+                      fontSize: 14.sp,
+                    ),
                   ),
+
+                  // Rank badge (beautiful + with level)
+                  if (profile?.rank != null) ...[
+                    SizedBox(height: 8.h),
+                    _buildRankBadge(profile!),
+                  ],
                 ],
               ),
             ),
-
+SizedBox(height: 10.h,),
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 30.h),
+                    SizedBox(height: 10.h),
 
+                    // Stats row
                     _buildStatsRow(
-                      weight: profile.weightKg?.toStringAsFixed(1) ?? '0',
-                      height: profile.heightCm?.toStringAsFixed(1) ?? '0',
-                      age: profile.dateOfBirth != null ? _calculateAge(profile.dateOfBirth!).toString() : '--',
+                      weight:
+                      profile?.weightKg?.toStringAsFixed(1) ?? '0',
+                      height:
+                      profile?.heightCm?.toStringAsFixed(1) ?? '0',
+                      age: profile?.age ?? 0,
                     ),
 
-                    SizedBox(height: 20.h),
 
+
+                    // Input Fields
                     _buildInputField(
                       label: 'Full Name',
                       controller: fullNameController,
@@ -177,24 +208,33 @@ class MyProfileEditScreen extends StatelessWidget {
 
                     SizedBox(height: 30.h),
 
+                    // Update Button
                     CustomButton(
                       onPress: controller.isLoading.value
                           ? null
                           : () async {
-                        final names = fullNameController.text.trim().split(RegExp(r'\s+'));
-                        final firstName = names.isNotEmpty ? names.first : null;
-                        final lastName = names.length > 1 ? names.sublist(1).join(' ') : null;
-
                         await controller.updateProfile(
-                          firstName: firstName,
-                          lastName: lastName,
-                          dateOfBirth: dobController.text.trim().isEmpty ? null : dobController.text.trim(),
-                          gender: profile.gender?.toLowerCase(),
-                          heightCm: double.tryParse(heightController.text.trim()),
-                          weightKg: double.tryParse(weightController.text.trim()),
+                          fullName: fullNameController.text
+                              .trim()
+                              .isEmpty
+                              ? null
+                              : fullNameController.text.trim(),
+                          dateOfBirth: dobController.text
+                              .trim()
+                              .isEmpty
+                              ? null
+                              : dobController.text.trim(),
+                          gender:
+                          profile?.gender?.toLowerCase(),
+                          heightCm: double.tryParse(
+                              heightController.text.trim()),
+                          weightKg: double.tryParse(
+                              weightController.text.trim()),
                         );
                       },
-                      title: controller.isLoading.value ? "Updating..." : "Update Profile",
+                      title: controller.isLoading.value
+                          ? "Updating..."
+                          : "Update Profile",
                       fontSize: 14.sp,
                       height: 40.h,
                       fontFamily: 'WorkSans',
@@ -216,7 +256,97 @@ class MyProfileEditScreen extends StatelessWidget {
     );
   }
 
+  /// Beautiful Rank Badge with gradient, glow and level
+  Widget _buildRankBadge(ProfileModel profile) {
+    final rank = profile.rank!;
+    final color = _getRankColor(rank.colorCode);
+    final name = rank.name;
+    final level = rank.level;
 
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.22),
+            color.withOpacity(0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22.r),
+        border: Border.all(
+          color: color.withOpacity(0.6),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.35),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Rank icon
+          SvgPicture.asset(
+            rankIcons[name.toUpperCase()] ?? ImageAssets.svg64,
+            width: 20.w,
+            height: 20.h,
+          ),
+          SizedBox(width: 6.w),
+
+          // Rank name
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w700,
+              color: color,
+              letterSpacing: 0.4,
+            ),
+          ),
+
+          SizedBox(width: 8.w),
+
+          // Level pill
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: color.withOpacity(0.8),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.star_rounded,
+                  size: 13.sp,
+                  color: AppColor.vividAmber,
+                ),
+                SizedBox(width: 3.w),
+                Text(
+                  "Lv $level",
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Input field
   Widget _buildInputField({
     required String label,
     required TextEditingController controller,
@@ -238,11 +368,10 @@ class MyProfileEditScreen extends StatelessWidget {
         ),
         SizedBox(height: 8.h),
         InputTextWidget(
-          onChanged: (value){},
+          onChanged: (value) {},
           controller: controller,
-          hintText: controller.text.isEmpty ? hintText : "", // Show hint only when empty
+          hintText: controller.text.isEmpty ? hintText : "",
           readOnly: readOnly,
-
           backgroundColor: AppColor.white,
           borderColor: AppColor.black111214,
           textColor: AppColor.black232323,
@@ -255,17 +384,25 @@ class MyProfileEditScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow({required String weight, required String height, required String age}) {
+  // Stats row
+  Widget _buildStatsRow({
+    required String weight,
+    required String height,
+    required int age,
+  }) {
     return Center(
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        decoration: BoxDecoration(color: AppColor.customPurple, borderRadius: BorderRadius.circular(8.r)),
+        decoration: BoxDecoration(
+          color: AppColor.customPurple,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildStatBox("$weight Kg", "Weight"),
             _buildVerticalDivider(),
-            _buildStatBox(age, "Years Old"),
+            _buildStatBox("$age", "Years Old"),
             _buildVerticalDivider(),
             _buildStatBox("$height CM", "Height"),
           ],
@@ -277,9 +414,21 @@ class MyProfileEditScreen extends StatelessWidget {
   Widget _buildStatBox(String value, String label) => Column(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Text(value, style: AppTextStyles.poppinsSemiBold.copyWith(color: Colors.white, fontSize: 14.sp)),
+      Text(
+        value,
+        style: AppTextStyles.poppinsSemiBold.copyWith(
+          color: Colors.white,
+          fontSize: 14.sp,
+        ),
+      ),
       SizedBox(height: 4.h),
-      Text(label, style: AppTextStyles.poppinsRegular.copyWith(color: Colors.white, fontSize: 12.sp)),
+      Text(
+        label,
+        style: AppTextStyles.poppinsRegular.copyWith(
+          color: Colors.white,
+          fontSize: 12.sp,
+        ),
+      ),
     ],
   );
 
@@ -289,6 +438,16 @@ class MyProfileEditScreen extends StatelessWidget {
     color: Colors.white.withOpacity(0.4),
     margin: EdgeInsets.symmetric(horizontal: 8.w),
   );
+
+  // Helper: Parse rank color
+  Color _getRankColor(String? hex) {
+    if (hex == null) return const Color(0xFFCD7F32);
+    try {
+      return Color(int.parse(hex.replaceFirst('#', '0xFF')));
+    } catch (e) {
+      return const Color(0xFFCD7F32);
+    }
+  }
 
   String _formatBirthday(String isoDate) {
     try {
@@ -303,15 +462,4 @@ class MyProfileEditScreen extends StatelessWidget {
     }
   }
 
-  int _calculateAge(String isoDate) {
-    try {
-      final birthDate = DateTime.parse(isoDate);
-      final today = DateTime.now();
-      int age = today.year - birthDate.year;
-      if (today.month < birthDate.month || (today.month == birthDate.month && today.day < birthDate.day)) age--;
-      return age < 0 ? 0 : age;
-    } catch (e) {
-      return 0;
-    }
-  }
 }

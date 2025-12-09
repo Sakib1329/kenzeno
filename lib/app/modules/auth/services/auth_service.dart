@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,6 +12,8 @@ import '../models/usermodel.dart';
 class AuthProvider {
   final String _baseUrl = AppConstants.baseUrl;
   final GetStorage box = GetStorage();
+  final RxString emaill="".obs;
+  final RxString password="".obs;
   final String refreshtoken = ""; // single storage instance
 
   // login
@@ -96,9 +99,8 @@ print(response.statusCode);
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(newuser.toJson()),
       );
-      print(newuser);
-      print(response.body);
-      print(response.statusCode);
+emaill.value=newuser.email;
+password.value=newuser.password;
       return response.statusCode == 201;
     } catch (e) {
       print('Register error: $e');
@@ -116,8 +118,7 @@ print(response.statusCode);
 print(response.statusCode);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final token = data['access_token'];
-        if (token != null) box.write('signupToken', token);
+await login(UserModel(email: emaill.value, password: password.value));
         return true;
       }
       print('Activation failed: ${response.body}');

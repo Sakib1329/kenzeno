@@ -4,13 +4,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:kenzeno/app/modules/setup/views/coach.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
 import 'package:kenzeno/app/res/colors/colors.dart';
 import 'package:kenzeno/app/res/fonts/textstyle.dart';
 import 'package:kenzeno/app/widgets/backbutton_widget.dart';
 import 'package:kenzeno/app/widgets/custom_button.dart';
-import 'package:kenzeno/app/widgets/textfield.dart';
+import '../../../widgets/textfield.dart';
 import '../controllers/bottomsheetcontroller.dart';
 import '../controllers/setup_controller.dart';
 
@@ -46,7 +47,6 @@ class FillProfilePage extends StatelessWidget {
               ),
               SizedBox(height: 8.h),
 
-              // Subtitle
               Text(
                 'Complete your profile to get personalized experience',
                 style: AppTextStyles.poppinsRegular.copyWith(
@@ -58,14 +58,13 @@ class FillProfilePage extends StatelessWidget {
 
               SizedBox(height: 30.h),
 
-              // Profile Picture (Reduced size)
+              // Profile Picture
               Center(
                 child: Stack(
                   alignment: Alignment.bottomRight,
                   children: [
                     Obx(() {
                       final imagePath = imageController.pickedImage.value?.path ?? ImageAssets.img_10;
-
                       return Container(
                         width: 120.w,
                         height: 120.w,
@@ -80,8 +79,6 @@ class FillProfilePage extends StatelessWidget {
                         ),
                       );
                     }),
-
-                    // Camera Button (Smaller & Cleaner)
                     GestureDetector(
                       onTap: () => imageController.getBottomSheet(),
                       child: Container(
@@ -125,11 +122,11 @@ class FillProfilePage extends StatelessWidget {
 
               SizedBox(height: 20.h),
 
-              // Nickname
+              // Phone Number with Country Code
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Nickname',
+                  'Phone number',
                   style: AppTextStyles.poppinsSemiBold.copyWith(
                     fontSize: 15.sp,
                     color: AppColor.customPurple,
@@ -137,33 +134,55 @@ class FillProfilePage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 8.h),
-              InputTextWidget(
-                hintText: 'Maddy',
-                onChanged: controller.setNickName,
-                height: 40.h,
-                borderRadius: 16.r,
-                backgroundColor: AppColor.white,
-                textColor: AppColor.black232323,
-                hintTextColor: AppColor.black232323.withOpacity(0.6),
-                fontWeight: FontWeight.w600,
+
+              // Beautiful Phone Field
+              IntlPhoneField(
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintText: '123 456 7890',
+                  hintStyle: TextStyle(
+                    color: AppColor.black232323.withOpacity(0.6),
+                    fontSize: 14.sp,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16.r),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                ),
+                initialCountryCode: 'US',
+                onChanged: (phone) {
+                  controller.setphonenumber(phone.completeNumber); // saves full number with code
+                  print(phone.completeNumber);
+                },
+                style: TextStyle(color: AppColor.black232323, fontSize: 14.sp),
+                dropdownTextStyle: TextStyle(color: AppColor.black232323),
+                dropdownIcon: Icon(Icons.arrow_drop_down, color: AppColor.customPurple),
               ),
 
               const Spacer(),
 
-              // Start Button (Smaller & Cleaner)
+              // Continue Button
               CustomButton(
-                onPress: () async{
+                onPress: () async {
                   if (controller.fullName.value.trim().isEmpty) {
-                    Get.snackbar(
-                      'Oops',
-                      'Please enter your name',
-                      backgroundColor: AppColor.purpleCCC2FF,
-                      colorText: AppColor.black111214,
-                      margin: EdgeInsets.all(15.w),
-                      borderRadius: 12.r,
-                    );
+                    Get.snackbar('Oops', 'Please enter your name',
+                        backgroundColor: AppColor.purpleCCC2FF,
+                        colorText: AppColor.black111214,
+                        margin: EdgeInsets.all(15.w),
+                        borderRadius: 12.r);
                     return;
                   }
+                  if (controller.phonenumber.value.length < 10) {
+                    Get.snackbar('Invalid', 'Please enter a valid phone number',
+                        backgroundColor: AppColor.purpleCCC2FF,
+                        colorText: AppColor.black111214,
+                        margin: EdgeInsets.all(15.w),
+                        borderRadius: 12.r);
+                    return;
+                  }
+                  controller.profileImagePath.value=imageController.pickedImage.value!.path;
                   Get.to(() => CoachPage(), transition: Transition.rightToLeft);
                 },
                 title: "Continue",
