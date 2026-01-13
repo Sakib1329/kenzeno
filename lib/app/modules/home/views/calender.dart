@@ -8,10 +8,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:kenzeno/app/modules/home/views/progressgallery.dart';
+import 'package:kenzeno/app/modules/nutrition/controllers/nutri_controller.dart';
 
 import '../../../res/assets/asset.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
+import '../../nutrition/model/nutrion_home.dart';
 import '../controllers/calender_controller.dart';
 
 
@@ -152,7 +154,7 @@ class FitTrackerView extends StatelessWidget {
               children: [
                 Icon(icon, color: color, size: 20.sp),
                 SizedBox(width: 8.w),
-                Text(title, style: AppTextStyles.poppinsRegular.copyWith(color: color, fontSize: 14.sp)),
+                Text(title, style: AppTextStyles.poppinsRegular.copyWith(color: color, fontSize: 12.sp)),
               ],
             ),
             SizedBox(height: 5.h),
@@ -601,106 +603,111 @@ class FitTrackerView extends StatelessWidget {
   }
 }
 
+
 class NutriTrackView extends StatelessWidget {
   NutriTrackView({super.key});
 
-  // Mock Data for the NutriTrack View
-  final List<Meal> meals =  [
-    Meal(
-        title: 'Breakfast',
-        description: 'Oatmeal with berries',
-        time: '8:30 AM',
-        calories: 320,
-        image: ImageAssets.img_26
-    ),
-    Meal(
-      title: 'Lunch',
-      description: 'Grilled chicken salad',
-      time: '12:45 PM',
-      calories: 520,
-      image: ImageAssets.img_26, // Placeholder path
-    ),
-    Meal(
-      title: 'Snack',
-      description: 'Apple with almond butter',
-      time: '3:20 PM',
-      calories: 180,
-      image:       ImageAssets.img_26, // Placeholder path
-    ),
-    Meal(
-      title: 'Dinner',
-      description: 'Not added yet',
-      time: 'Add meal',
-      calories: 0,
-      image:       ImageAssets.img_26, // Placeholder path
-    ),
-  ];
-
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+    return GetBuilder<NutritionController>(
+      init: NutritionController(),
+      builder: (controller) {
+        final data = controller.nutritionData.value;
+
+        if (controller.isLoading.value) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: AppColor.customPurple),
+                SizedBox(height: 16.h),
+                Text(
+                  'Loading nutrition data...',
+                  style: AppTextStyles.poppinsMedium.copyWith(
+                    color: AppColor.gray9CA3AF,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (data == null) {
+          return _buildEmptyState();
+        }
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMetricsSection(data),
+              SizedBox(height: 20.h),
+              _buildTodayProgressCard(data),
+              SizedBox(height: 20.h),
+              _buildTodaysMealsSection(data),
+              SizedBox(height: 30.h),
+              _buildNutritionBreakdown(data),
+              SizedBox(height: 40.h),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// EMPTY STATE
+  Widget _buildEmptyState() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // --- Photos and Streak Section (Mocking FitTracker data here for consistency) ---
-          Row(
-            children: [
-              _buildMetricCard('Photos', '47', '+3 this week', Icons.camera_alt,AppColor.green22C55E),
-              SizedBox(width: 20.w),
-              _buildMetricCard('Streak', '12', 'days active', Icons.calendar_today,AppColor.skyBlue00C2FF),
-            ],
-          ),
-          SizedBox(height: 20.h),
-
-          // --- Today's Progress Card ---
-          _buildProgressCard(1240, 2000),
-          SizedBox(height: 20.h),
-
-          // --- Today's Meals Section ---
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Today's Meals",
-                style: AppTextStyles.poppinsBold.copyWith(fontSize: 18.sp, color: AppColor.white),
-              ),
-              Text(
-                'View All',
-                style: AppTextStyles.poppinsMedium.copyWith(fontSize: 14.sp, color: AppColor.green22C55E),
-              ),
-            ],
-          ),
-          SizedBox(height: 15.h),
-
-          // Meal List
-          ...meals.map((meal) => _buildMealItem(meal)).toList(),
-
-          SizedBox(height: 30.h),
-
-          // --- Nutrition Breakdown Section ---
+          Icon(Icons.restaurant_menu, size: 64.sp, color: AppColor.gray9CA3AF),
+          SizedBox(height: 16.h),
           Text(
-            "Nutrition Breakdown",
-            style: AppTextStyles.poppinsBold.copyWith(fontSize: 18.sp, color: AppColor.white),
+            'No nutrition data yet',
+            style: AppTextStyles.poppinsMedium.copyWith(color: AppColor.white),
           ),
-          SizedBox(height: 15.h),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildMacroCard(svg:ImageAssets.svg61, label: 'Carbs', value: '156g', color: AppColor.customPurple),
-              _buildMacroCard(svg:ImageAssets.svg62, label: 'Protein', value: '78g', color: AppColor.green22C55E),
-              _buildMacroCard(svg:ImageAssets.svg63, label: 'Fat', value: '42g', color: AppColor.orangeF97316),
-            ],
+          SizedBox(height: 8.h),
+          Text(
+            'Scan your first meal to get started!',
+            style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF),
           ),
-          SizedBox(height: 20.h),
         ],
       ),
     );
   }
 
-  // Widget for Photos/Streak/Generic Metric Card
-  Widget _buildMetricCard(String title, String value, String subtitle, IconData icon,Color color) {
+  /// METRICS SECTION
+  Widget _buildMetricsSection(NutritionHomeResponse data) {
+    return Row(
+      children: [
+        _buildMetricCard(
+          title: 'Meals Logged',
+          value: '${data.totalMeals}',
+          subtitle: '+1 this week',
+          icon: Icons.restaurant_menu,
+          color: AppColor.green22C55E,
+        ),
+        SizedBox(width: 20.w),
+        _buildMetricCard(
+          title: 'Streak',
+          value: '${data.streak}',
+          subtitle: 'days active',
+          icon: Icons.local_fire_department,
+          color: AppColor.orangeF97316,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
     return Expanded(
       child: Container(
         padding: EdgeInsets.all(16.r),
@@ -714,21 +721,30 @@ class NutriTrackView extends StatelessWidget {
             Row(
               children: [
                 Icon(icon, color: color, size: 20.sp),
-                SizedBox(width: 8.w),
+                SizedBox(width: 5.w),
                 Text(
                   title,
-                  style: AppTextStyles.poppinsRegular.copyWith(color: AppColor.gray9CA3AF, fontSize: 14.sp),
+                  style: AppTextStyles.poppinsRegular.copyWith(
+                    color: AppColor.gray9CA3AF,
+                    fontSize: 12.sp,
+                  ),
                 ),
               ],
             ),
             SizedBox(height: 5.h),
             Text(
               value,
-              style: AppTextStyles.poppinsBold.copyWith(color: AppColor.white, fontSize: 32.sp),
+              style: AppTextStyles.poppinsBold.copyWith(
+                color: AppColor.white,
+                fontSize: 32.sp,
+              ),
             ),
             Text(
               subtitle,
-              style: AppTextStyles.poppinsRegular.copyWith(color: color, fontSize: 12.sp),
+              style: AppTextStyles.poppinsRegular.copyWith(
+                color: color,
+                fontSize: 12.sp,
+              ),
             ),
           ],
         ),
@@ -736,17 +752,17 @@ class NutriTrackView extends StatelessWidget {
     );
   }
 
-  // Widget for Today's Progress Card
-  Widget _buildProgressCard(int current, int goal) {
-    double progress = current / goal;
+  /// TODAY PROGRESS CARD
+  Widget _buildTodayProgressCard(NutritionHomeResponse data) {
+    final double progress = data.caloriesTarget > 0
+        ? (data.caloriesGain / data.caloriesTarget).clamp(0.0, 1.0)
+        : 0.0;
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF580C88), // start color
-            Color(0xFF896CFE), // end color
-          ],
+          colors: [Color(0xFF580C88), Color(0xFF896CFE)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -766,12 +782,17 @@ class NutriTrackView extends StatelessWidget {
                 ),
               ),
               Container(
-                  padding: EdgeInsetsGeometry.symmetric(vertical: 10.h,horizontal: 8.w),
-                  decoration: BoxDecoration(
-                      color: AppColor.white30,
-                      borderRadius: BorderRadius.circular(20.w)
-                  ),
-                  child: SvgPicture.asset(ImageAssets.svg57,color: Colors.white,))
+                padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 8.w),
+                decoration: BoxDecoration(
+                  color: AppColor.white.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(20.w),
+                ),
+                child: SvgPicture.asset(
+                  ImageAssets.svg57,
+                  color: Colors.white,
+                  height: 20.h,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 5.h),
@@ -785,14 +806,14 @@ class NutriTrackView extends StatelessWidget {
           SizedBox(height: 15.h),
           Text.rich(
             TextSpan(
-              text: '${current.toStringAsFixed(0)}',
+              text: '${data.caloriesGain}',
               style: AppTextStyles.poppinsBold.copyWith(
                 fontSize: 28.sp,
                 color: AppColor.white,
               ),
               children: [
                 TextSpan(
-                  text: ' / ${goal.toStringAsFixed(0)} cal',
+                  text: ' / ${data.caloriesTarget} cal',
                   style: AppTextStyles.poppinsMedium.copyWith(
                     fontSize: 22.sp,
                     color: AppColor.white.withOpacity(0.7),
@@ -814,117 +835,405 @@ class NutriTrackView extends StatelessWidget {
         ],
       ),
     );
-
   }
 
-  // Widget for a single meal item (Breakfast, Lunch, etc.)
-  Widget _buildMealItem(Meal meal) {
-    bool isAdded = meal.calories > 0;
-    return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+  /// TODAY'S MEALS SECTION
+  /// TODAY'S MEALS SECTION (clickable cards)
+  Widget _buildTodaysMealsSection(NutritionHomeResponse data) {
+    if (data.todaysMeals.isEmpty) {
+      return Center(
+        child: Text(
+          'No meals logged today',
+          style: AppTextStyles.poppinsRegular.copyWith(
+            color: AppColor.gray9CA3AF,
+            fontSize: 14.sp,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Today's Meals",
+          style: AppTextStyles.poppinsBold.copyWith(
+            fontSize: 18.sp,
+            color: AppColor.white,
+          ),
+        ),
+        SizedBox(height: 15.h),
+        ...data.todaysMeals.map((meal) => _buildMealCard(meal)),
+      ],
+    );
+  }
+
+  /// Meal card with clickable popup
+  Widget _buildMealCard(TodayMeal meal) {
+    return GestureDetector(
+      onTap: () => _showMealDetailsPopup(meal),
       child: Container(
+        margin: EdgeInsets.only(bottom: 12.h),
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(
-              color: isAdded?Colors.transparent:AppColor.customPurple,
-            )
+          borderRadius: BorderRadius.circular(15.r),
+          color: AppColor.gray1F2937.withOpacity(0.3),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Meal Image/Placeholder
-            Container(
-              width: 60.w,
-              height: 60.w,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15.r),
-                color:  AppColor.gray1F2937 ,
-                image: isAdded
-                    ? DecorationImage(
-                  // Using a placeholder image to keep the file self-contained
-                  image: AssetImage(
-                    meal.image,
-                  ),   fit: BoxFit.cover,)
+            _buildMealImage(meal),
+            SizedBox(width: 15.w),
+            Expanded(child: _buildMealSummary(meal)),
+            SizedBox(width: 5.w),
+            Text(
+              '${meal.estimatedCalories} cal',
+              style: AppTextStyles.poppinsBold.copyWith(
+                  fontSize: 12.sp, color: AppColor.green22C55E),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Meal image
+  Widget _buildMealImage(TodayMeal meal) {
+    return Container(
+      width: 60.w,
+      height: 60.w,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15.r),
+        color: AppColor.gray1F2937,
+        image: meal.imageUrl.isNotEmpty
+            ? DecorationImage(
+          image: NetworkImage(meal.imageUrl),
+          fit: BoxFit.cover,
+        )
+            : null,
+      ),
+      child: meal.imageUrl.isEmpty
+          ? Icon(Icons.restaurant, color: AppColor.white, size: 30)
+          : null,
+    );
+  }
+
+  /// Meal summary (for the card)
+  Widget _buildMealSummary(TodayMeal meal) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          meal.mealName.isNotEmpty ? meal.mealName : 'Meal',
+          style: AppTextStyles.poppinsBold.copyWith(
+              fontSize: 16.sp, color: AppColor.white),
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          meal.aiAnalysis.isNotEmpty
+              ? (meal.aiAnalysis.length > 40
+              ? '${meal.aiAnalysis.substring(0, 40)}...'
+              : meal.aiAnalysis)
+              : 'No analysis available',
+          style: AppTextStyles.poppinsRegular.copyWith(
+            fontSize: 14.sp,
+            color: AppColor.white.withOpacity(0.7),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showMealDetailsPopup(TodayMeal meal) {
+    Get.dialog(
+      Dialog(
+        backgroundColor: AppColor.gray1F2937,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Meal image
+              Container(
+                width: double.infinity,
+                height: 180.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15.r),
+                  image: meal.imageUrl.isNotEmpty
+                      ? DecorationImage(
+                    image: NetworkImage(meal.imageUrl),
+                    fit: BoxFit.cover,
+                  )
+                      : null,
+                  color: AppColor.gray1F2937,
+                ),
+                child: meal.imageUrl.isEmpty
+                    ? Icon(Icons.restaurant, color: AppColor.white, size: 40)
                     : null,
               ),
-              child: !isAdded
-                  ? const Icon(Icons.add, color: AppColor.white, size: 30)
-                  : null,
-            ),
-            SizedBox(width: 15.w),
+              SizedBox(height: 15.h),
 
-            // Meal Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              /// Meal name
+              Text(
+                meal.mealName.isNotEmpty ? meal.mealName : 'Meal',
+                style: AppTextStyles.poppinsBold.copyWith(
+                    fontSize: 20.sp, color: AppColor.white),
+              ),
+              SizedBox(height: 8.h),
+
+              /// AI analysis
+              Text(
+                meal.aiAnalysis.isNotEmpty ? meal.aiAnalysis : 'No analysis available',
+                style: AppTextStyles.poppinsRegular.copyWith(
+                  fontSize: 14.sp,
+                  color: AppColor.white.withOpacity(0.7),
+                ),
+              ),
+              SizedBox(height: 12.h),
+
+              /// Calories
+              Row(
                 children: [
+                  Icon(Icons.local_fire_department,
+                      color: AppColor.green22C55E, size: 20.sp),
+                  SizedBox(width: 8.w),
                   Text(
-                    meal.title,
-                    style: AppTextStyles.poppinsBold.copyWith(fontSize: 16.sp, color: AppColor.white),
-                  ),
-                  Text(
-                    meal.description,
-                    style: AppTextStyles.poppinsRegular.copyWith(
+                    '${meal.estimatedCalories} cal',
+                    style: AppTextStyles.poppinsBold.copyWith(
                       fontSize: 14.sp,
-                      color: isAdded ? AppColor.white.withOpacity(0.7) : AppColor.white,
+                      color: AppColor.green22C55E,
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time, size: 12.sp, color: AppColor.white.withOpacity(0.5)),
-                      SizedBox(width: 5.w),
-                      Text(
-                        meal.time,
-                        style: AppTextStyles.poppinsRegular.copyWith(fontSize: 12.sp, color: AppColor.white.withOpacity(0.5)),
-                      ),
-                    ],
                   ),
                 ],
               ),
-            ),
+              SizedBox(height: 12.h),
 
-            // Calorie Count
-            if (isAdded)
-              Text(
-                '${meal.calories} cal',
-                style: AppTextStyles.poppinsBold.copyWith(fontSize: 12.sp, color: AppColor.green22C55E),
+              /// Tip (if any)
+              if (meal.improvements.isNotEmpty)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tips',
+                      style: AppTextStyles.poppinsBold.copyWith(
+                        fontSize: 16.sp,
+                        color: AppColor.white,
+                      ),
+                    ),
+                    SizedBox(height: 5.h,),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+                      decoration: BoxDecoration(
+                        color: AppColor.green22C55E.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      child: Text(
+                        meal.improvements, // use string directly
+                        style: AppTextStyles.poppinsRegular.copyWith(
+                            fontSize: 12.sp, color: AppColor.green22C55E),
+                      ),
+                    ),
+                  ],
+                ),
+              SizedBox(height: 15.h),
+
+              /// Close button
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Get.back(),
+                  child: Text(
+                    'Close',
+                    style: AppTextStyles.poppinsMedium.copyWith(
+                        fontSize: 14.sp, color: AppColor.green22C55E),
+                  ),
+                ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Widget for Carbs/Protein/Fat Breakdown Card
-  Widget _buildMacroCard({required String svg, required String label, required String value, required Color color}) {
-    return Expanded(
-      child: Container(
-        height: 100.h,
-        margin: EdgeInsets.symmetric(horizontal: 5.w),
-        padding: EdgeInsets.all(15.w),
-        decoration: BoxDecoration(
-          color: AppColor.gray1F2937,
-          borderRadius: BorderRadius.circular(15.r),
+
+
+  /// NUTRITION BREAKDOWN - Grouped Macro & Micro (No "Macro"/"Micro" in containers)
+  Widget _buildNutritionBreakdown(NutritionHomeResponse data) {
+    final macros = data.nutritionBreakdown
+        .where((n) => ['carbs', 'protein', 'fat'].contains(n.name.toLowerCase()))
+        .toList();
+    final micros = data.nutritionBreakdown
+        .where((n) => !['carbs', 'protein', 'fat'].contains(n.name.toLowerCase()))
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // SECTION HEADER
+        Text(
+          "Nutrition Breakdown",
+          style: AppTextStyles.poppinsBold.copyWith(
+              fontSize: 18.sp, color: AppColor.white),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SvgPicture.asset(svg),
-            SizedBox(height: 5.h),
-            Text(
-              label,
-              style: AppTextStyles.poppinsMedium.copyWith(fontSize: 12.sp, color: AppColor.white.withOpacity(0.7)),
-            ),
-            Text(
-              value,
-              style: AppTextStyles.poppinsBold.copyWith(fontSize: 14.sp, color: AppColor.white),
-            ),
-          ],
-        ),
+        SizedBox(height: 15.h),
+
+        // MACRO SECTION
+        if (macros.isNotEmpty) ...[
+          Text(
+            "Macro",
+            style: AppTextStyles.poppinsBold.copyWith(
+                fontSize: 16.sp, color: AppColor.white),
+          ),
+          SizedBox(height: 10.h),
+          Row(
+            children: [
+              for (var n in macros) Expanded(child: _buildMacroCardDynamic(n)),
+            ],
+          ),
+          SizedBox(height: 20.h),
+        ],
+
+        // MICRO SECTION LABEL
+        if (micros.isNotEmpty) ...[
+          Text(
+            "Micro",
+            style: AppTextStyles.poppinsBold.copyWith(
+                fontSize: 16.sp, color: AppColor.white),
+          ),
+          SizedBox(height: 10.h),
+
+          // MICRONUTRIENTS ROW / WRAP
+          Wrap(
+            spacing: 12.w,
+            runSpacing: 12.h,
+            children: micros.map((n) => _buildMicroCard(n)).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMacroCardDynamic(NutrientBreakdown n) {
+    final gradient = _getNutrientGradient(n.name);
+    final icon = _getNutrientIcon(n.name);
+
+    return Container(
+      height: 120.h,
+      margin: EdgeInsets.symmetric(horizontal: 5.w),
+      padding: EdgeInsets.all(15.w),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(15.r),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 6,
+              offset: Offset(0, 3))
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 28.sp, color: Colors.white),
+          SizedBox(height: 8.h),
+          Text(
+            n.name,
+            style: AppTextStyles.poppinsMedium.copyWith(fontSize: 12.sp, color: Colors.white),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            '${n.amount}${n.unit}',
+            style: AppTextStyles.poppinsBold.copyWith(fontSize: 16.sp, color: Colors.white),
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildMicroCard(NutrientBreakdown n) {
+    final gradient = _getNutrientGradient(n.name);
+    final icon = _getNutrientIcon(n.name);
+
+    return Container(
+      width: 100.w,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(15.r),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20.sp, color: Colors.white),
+          SizedBox(height: 4.h),
+          Text(
+            n.name,
+            style: AppTextStyles.poppinsMedium.copyWith(fontSize: 12.sp, color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            '${n.amount}${n.unit}',
+            style: AppTextStyles.poppinsBold.copyWith(fontSize: 14.sp, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  LinearGradient _getNutrientGradient(String name) {
+    switch (name.toLowerCase()) {
+      case 'carbs':
+        return const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]);
+      case 'protein':
+        return const LinearGradient(colors: [Color(0xFF11998E), Color(0xFF38EF7D)]);
+      case 'fat':
+        return const LinearGradient(colors: [Color(0xFFF7971E), Color(0xFFFFD200)]);
+      case 'iron':
+        return const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFFF87171)]);
+      case 'calcium':
+        return const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF6EE7B7)]);
+      case 'vitaminc':
+        return const LinearGradient(colors: [Color(0xFFF97316), Color(0xFFFFB347)]);
+      default:
+        return const LinearGradient(colors: [Color(0xFF7C3AED), Color(0xFF8B5CF6)]);
+    }
+  }
+
+  IconData _getNutrientIcon(String name) {
+    switch (name.toLowerCase()) {
+      case 'carbs':
+        return Icons.bubble_chart;
+      case 'protein':
+        return Icons.fitness_center;
+      case 'fat':
+        return Icons.oil_barrel;
+      case 'iron':
+        return Icons.bloodtype;
+      case 'calcium':
+        return Icons.local_hospital;
+      case 'vitaminc':
+        return Icons.local_florist;
+      default:
+        return Icons.star;
+    }
+  }
+}
+
+
+
+
+// Extension for firstWhereOrNull (if you don't have collection package)
+extension IterableExtension<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
+    try {
+      return firstWhere(test);
+    } catch (e) {
+      return null;
+    }
   }
 }
 

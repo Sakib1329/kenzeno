@@ -1,4 +1,4 @@
-// Model to hold real response
+// meal_result_analysis.dart
 class MealAnalysisResult {
   final int tempUploadId;
   final String mealName;
@@ -21,22 +21,46 @@ class MealAnalysisResult {
   });
 
   factory MealAnalysisResult.fromJson(Map<String, dynamic> json) {
+    // Helper to safely convert anything to double
+    double _toDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) return double.tryParse(value) ?? 0.0;
+      return 0.0;
+    }
+
+    // Parse macronutrients
+    Map<String, double> macroMap = {};
+    final macros = json['analysis_data']?['macronutrients'];
+    if (macros is List) {
+      for (var item in macros) {
+        String name = (item['name'] ?? '').toString().toLowerCase();
+        double amount = _toDouble(item['amount']);
+        macroMap[name] = amount;
+      }
+    }
+
+    // Parse micronutrients
+    Map<String, double> microMap = {};
+    final micros = json['analysis_data']?['micronutrients'];
+    if (micros is List) {
+      for (var item in micros) {
+        String name = (item['name'] ?? '').toString().toLowerCase();
+        double amount = _toDouble(item['amount']);
+        microMap[name] = amount;
+      }
+    }
+
     return MealAnalysisResult(
-      tempUploadId: json['temp_upload_id'],
-      mealName: json['analysis_data']['meal_name'] ?? 'Unknown Meal',
-      estimatedCalories: (json['analysis_data']['estimated_calories'] as num).toDouble(),
-      overallHealthInsight: json['analysis_data']['overall_health_insight'] ?? '',
-      macronutrients: {
-        'protein': (json['analysis_data']['macronutrients']['protein_g'] as num).toDouble(),
-        'fat': (json['analysis_data']['macronutrients']['fat_g'] as num).toDouble(),
-        'carbs': (json['analysis_data']['macronutrients']['carbs_g'] as num).toDouble(),
-      },
-      micronutrients: {
-        'vitamin_c': (json['analysis_data']['micronutrients']['vitamin_c_mg'] as num?)?.toDouble() ?? 0.0,
-        'iron': (json['analysis_data']['micronutrients']['iron_mg'] as num?)?.toDouble() ?? 0.0,
-      },
-      improvementSuggestion: json['analysis_data']['improvement_suggestion'] ?? '',
-      imagePath: json['image_path'] ?? '',
+      tempUploadId: json['temp_upload_id'] ?? 0,
+      mealName: json['analysis_data']?['meal_name']?.toString() ?? 'Unknown Meal',
+      estimatedCalories: _toDouble(json['analysis_data']?['estimated_calories']),
+      overallHealthInsight: json['analysis_data']?['overall_health_insight']?.toString() ?? '',
+      macronutrients: macroMap,
+      micronutrients: microMap,
+      improvementSuggestion: json['analysis_data']?['improvement_suggestion']?.toString() ?? '',
+      imagePath: json['image_path']?.toString() ?? '',
     );
   }
 }

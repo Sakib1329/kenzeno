@@ -1,10 +1,9 @@
-// lib/app/modules/home/views/discussion_forum_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../res/colors/colors.dart';
-import '../../../res/fonts/textstyle.dart';
+
 import '../controllers/post_controller.dart';
 import '../widgets/postcard.dart';
 
@@ -104,7 +103,7 @@ class DiscussionForumPage extends StatelessWidget {
                     name: post.userName,
                     content: post.content,
                     favoriteCount: post.likes,
-                    commentCount: post.comments, // Now shows real count!
+                    commentCount: post.comments,
                     isFavorited: post.isLiked,
                     isowner: post.isOwner,
                     onFavoriteTap: () {
@@ -127,7 +126,6 @@ controller.toggleLike(post.id);
             ),
           ),
 
-          // Fixed Input Bar — exactly as you had it
           Positioned(
             bottom: 20.h,
             left: 16.w,

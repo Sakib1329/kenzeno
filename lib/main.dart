@@ -22,6 +22,7 @@ import 'package:kenzeno/app/modules/workout/controllers/workoutcontroller.dart';
 import 'package:kenzeno/app/modules/workout/services/workout_services.dart';
 
 import 'app/constants/push_notification.dart';
+import 'app/modules/nutrition/controllers/nutri_controller.dart';
 import 'app/modules/onboard/controllers/onboard_controller.dart';
 
 
@@ -50,6 +51,7 @@ void main() async {
   Get.put(SetupService());
   Get.put(HomeService());
   Get.put(OnboardController());
+  Get.put(NutritionController());
   Get.put(BottomSheetController());
   Get.put(SetupController());
 Get.put(Authcontroller());

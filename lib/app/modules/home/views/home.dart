@@ -416,7 +416,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildDailyChallenge() {
     return Container(
-      color: AppColor.customPurple,
+      color: AppColor.purpleRoyal,
       padding: EdgeInsets.all(15.w),
       child: Container(
         height: 120.h,

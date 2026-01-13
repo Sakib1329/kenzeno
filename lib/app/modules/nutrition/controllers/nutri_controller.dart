@@ -1,52 +1,75 @@
-// lib/app/modules/nutrition/controllers/scan_meal_controller.dart
-
+// nutrition_controller.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-import '../../../res/colors/colors.dart';
+import '../model/meal_result_analysis.dart';
+import '../model/nutrion_home.dart';
 import '../service/nutri_service.dart';
 
-import '../views/scannedmealdetails.dart';
+import '../views/scannedmealdetails.dart'; // your beautiful page
 
-class ScanMealController extends GetxController {
+class NutritionController extends GetxController {
   final NutritionService _service = NutritionService();
 
   var isAnalyzing = false.obs;
-  var scannedImageFile = Rxn<File>();
+  var isSaving = false.obs;
+  var isLoading = true.obs;
+  var nutritionData = Rxn<NutritionHomeResponse>();
 
-  Future<void> scanAndAnalyze() async {
-    final picker = ImagePicker();
-    final XFile? photo = await picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 85,
-      preferredCameraDevice: CameraDevice.rear,
-    );
+  @override
+  void onInit() {
+    super.onInit();
+    fetchNutritionHome();
+  }
 
-    if (photo == null) {
-      Get.snackbar("Cancelled", "No photo taken");
-      return;
+  MealAnalysisResult? currentAnalysisResult;
+
+  Future<void> analyzeMeal(File imageFile) async {
+    try {
+      isAnalyzing(true);
+      final result = await _service.uploadMealImage(imageFile);
+      currentAnalysisResult = result;
+      print("${currentAnalysisResult?.tempUploadId}");
+
+      Get.to(() => RedesignedScannedMealPage(
+        imageFile: imageFile,
+        analysisResult: result,
+      ));
+    } catch (e) {
+      rethrow; // Let the page handle error + close dialog
+    } finally {
+      isAnalyzing(false);
+    }
+  }
+
+  Future<bool> saveCurrentMeal() async {
+    if (currentAnalysisResult == null) {
+      Get.snackbar('Error', 'No meal to save', backgroundColor: Colors.orange[700], colorText: Colors.white);
+      return false;
     }
 
-    scannedImageFile.value = File(photo.path);
-    isAnalyzing.value = true;
-
-    Get.dialog(
-      const Center(child: CircularProgressIndicator(color: AppColor.customPurple)),
-      barrierDismissible: false,
-    );
-
     try {
-      final result = await _service.uploadMealImage(File(photo.path));
-
-    print(result);
-
-
+      isSaving(true);
+      await _service.saveMealUpload(currentAnalysisResult!.tempUploadId);
+      Get.snackbar('Success', 'Meal saved to your log!', backgroundColor: Colors.green[700], colorText: Colors.white);
+      return true;
     } catch (e) {
-      Get.back();
-      Get.snackbar("Error", e.toString(), backgroundColor: Colors.red[800], colorText: Colors.white);
+      Get.snackbar('Failed', e.toString(), backgroundColor: Colors.red[800], colorText: Colors.white);
+      return false;
     } finally {
-      isAnalyzing.value = false;
+      isSaving(false);
+    }
+  }
+
+  Future<void> fetchNutritionHome() async {
+    try {
+      isLoading(true);
+      final data = await _service.getNutritionHome();
+      nutritionData.value = data;
+    } catch (e) {
+      Get.snackbar('Error', e.toString(), backgroundColor: Colors.red[800], colorText: Colors.white);
+    } finally {
+      isLoading(false);
     }
   }
 }
