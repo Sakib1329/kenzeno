@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:kenzeno/app/modules/home/views/leaderboard.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
+import 'package:kenzeno/app/widgets/backbutton_widget.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
 import 'challenges.dart';
@@ -18,38 +19,26 @@ class CommunityPage extends StatelessWidget {
       length: 2,
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Padding(
-            padding: EdgeInsets.only(left: 20.w, top: 10.h),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  child: const Icon(
-                    Icons.arrow_back_ios,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+          leading: BackButtonBox(),
+          title: Row(
+            children: [
+              Text(
+                'Community',
+                style: AppTextStyles.poppinsBold.copyWith(
+                  color: Colors.white,
+                  fontSize: 22.sp,
                 ),
-                SizedBox(width: 8.w),
-                Text(
-                  'Community',
-                  style: AppTextStyles.poppinsBold.copyWith(
-                    color: Colors.white,
-                    fontSize: 24.sp,
-                  ),
-                ),
+              ),
 
-                Spacer(),
-                GestureDetector(
-                  onTap: (){
-                    Get.to(LeaderboardPage(),transition: Transition.rightToLeft);
-                  },
-                  child: SvgPicture.asset(ImageAssets.svg51,height: 30.h,),
+              Spacer(),
+              GestureDetector(
+                onTap: (){
+                  Get.to(LeaderboardPage(),transition: Transition.rightToLeft);
+                },
+                child: SvgPicture.asset(ImageAssets.svg51,height: 30.h,),
 
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           bottom: PreferredSize(
             preferredSize: Size.fromHeight(60.h),

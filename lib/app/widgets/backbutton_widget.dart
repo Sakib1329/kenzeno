@@ -11,7 +11,7 @@ class BackButtonBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Get.back(),
+      onTap: () => Navigator.pop(context),
       child: Padding(
         padding:  EdgeInsets.all(8.w),
         child: SvgPicture.asset(

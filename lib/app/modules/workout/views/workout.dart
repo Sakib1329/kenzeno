@@ -16,7 +16,6 @@ import '../controllers/workoutcontroller.dart';
 class Workout extends StatelessWidget {
   const Workout({super.key});
 
-  // --- Tab Bar Implementation (UNCHANGED) ---
   Widget _buildTabBar(WorkoutController controller) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),

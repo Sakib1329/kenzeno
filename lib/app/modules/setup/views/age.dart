@@ -38,22 +38,15 @@ class AgeSelectionPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColor.black111214,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: BackButtonBox(),
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            // Header with back button
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Row(
-                children: [
-                  const BackButtonBox(),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 20.h),
-
-            // Title
+            SizedBox(height: 20.h,),
             Text(
               'What is your age?',
               style: AppTextStyles.workSansSemiBold.copyWith(

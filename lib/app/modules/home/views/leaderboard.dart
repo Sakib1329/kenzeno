@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:kenzeno/app/widgets/backbutton_widget.dart';
 
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
@@ -53,10 +54,7 @@ class LeaderboardPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColor.black111214,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Get.back(),
-          child: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20), // Smaller icon
-        ),
+        leading: BackButtonBox(),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
