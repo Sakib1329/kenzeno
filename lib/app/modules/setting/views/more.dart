@@ -44,199 +44,196 @@ class More extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColor.black111214,
-      appBar: AppBar(
-        backgroundColor: AppColor.black111214,
-        title: Text(
-          "My Profile",
-          style: AppTextStyles.poppinsSemiBold.copyWith(
-            fontSize: 18.sp,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Obx(() {
-        final profile = controller.profile.value;
-
-        // Loading state
-        if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColor.customPurple),
-          );
-        }
-
-
-        // Real data
-        final rankName = (profile.rank?.name ?? 'BRONZE').toUpperCase();
-        final rankLevel = profile.rank?.level ?? 1;
-        final rankColor = _colorFromHex(profile.rank?.colorCode);
-        final rankSvg = rankIcons[rankName] ?? ImageAssets.svg64;
-
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // PROFILE SECTION
-              Center(
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 45.r,
-                      backgroundImage: profile.avatar != null && profile.avatar!.isNotEmpty
-                          ? NetworkImage(profile.avatar!) as ImageProvider
-                          : const AssetImage(ImageAssets.img_3),
-                      backgroundColor: AppColor.gray9CA3AF,
-                    ),
-                    SizedBox(height: 12.h),
-
-                    // Full Name
-                    Text(
-                      profile.fullName ?? "Your Name",
-                      style: AppTextStyles.poppinsSemiBold.copyWith(
-                        color: Colors.white,
-                        fontSize: 18.sp,
+      body: SafeArea(
+        child: Obx(() {
+          final profile = controller.profile.value;
+        
+          // Loading state
+          if (controller.isLoading.value) {
+            return const Center(
+              child: CircularProgressIndicator(color: AppColor.customPurple),
+            );
+          }
+        
+        
+          // Real data
+          final rankName = (profile.rank?.name ?? 'BRONZE').toUpperCase();
+          final rankLevel = profile.rank?.level ?? 1;
+          final rankColor = _colorFromHex(profile.rank?.colorCode);
+          final rankSvg = rankIcons[rankName] ?? ImageAssets.svg64;
+        
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // PROFILE SECTION
+                Center(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 45.r,
+                        backgroundImage: profile.avatar != null && profile.avatar!.isNotEmpty
+                            ? NetworkImage(profile.avatar!) as ImageProvider
+                            : const AssetImage(ImageAssets.img_3),
+                        backgroundColor: AppColor.gray9CA3AF,
                       ),
-                    ),
-
-                    // Email
-                    Text(
-                      profile.email ?? "your@email.com",
-                      style: AppTextStyles.poppinsRegular.copyWith(
-                        color: AppColor.white30,
-                        fontSize: 14.sp,
+                      SizedBox(height: 12.h),
+        
+                      // Full Name
+                      Text(
+                        profile.fullName ?? "Your Name",
+                        style: AppTextStyles.poppinsSemiBold.copyWith(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                        ),
                       ),
-                    ),
-
-                    // Birthday
-                    Text(
-                      profile.dateOfBirth == null
-                          ? "Birthday: Not set"
-                          : "Birthday: ${_formatBirthday(profile.dateOfBirth!)}",
-                      style: AppTextStyles.poppinsRegular.copyWith(
-                        color: AppColor.purpleCCC2FF,
-                        fontSize: 14.sp,
+        
+                      // Email
+                      Text(
+                        profile.email ?? "your@email.com",
+                        style: AppTextStyles.poppinsRegular.copyWith(
+                          color: AppColor.white30,
+                          fontSize: 14.sp,
+                        ),
                       ),
-                    ),
-
-                    SizedBox(height: 12.h),
-
-                    // RANK BADGE
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            rankColor.withOpacity(0.35),
-                            rankColor.withOpacity(0.15),
+        
+                      // Birthday
+                      Text(
+                        profile.dateOfBirth == null
+                            ? "Birthday: Not set"
+                            : "Birthday: ${_formatBirthday(profile.dateOfBirth!)}",
+                        style: AppTextStyles.poppinsRegular.copyWith(
+                          color: AppColor.purpleCCC2FF,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+        
+                      SizedBox(height: 12.h),
+        
+                      // RANK BADGE
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              rankColor.withOpacity(0.35),
+                              rankColor.withOpacity(0.15),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(30.r),
+                          border: Border.all(color: rankColor, width: 1.4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SvgPicture.asset(
+                              rankSvg,
+                              width: 20.w,
+                              height: 20.h,
+        
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              "$rankName • Level $rankLevel",
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.bold,
+                                color: rankColor,
+                              ),
+                            ),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(30.r),
-                        border: Border.all(color: rankColor, width: 1.4),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            rankSvg,
-                            width: 20.w,
-                            height: 20.h,
-
-                          ),
-                          SizedBox(width: 6.w),
-                          Text(
-                            "$rankName • Level $rankLevel",
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.bold,
-                              color: rankColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 20.h),
-
-              // STATS BOX
-              Center(
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                  decoration: BoxDecoration(
-                    color: AppColor.customPurple,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildSingleStat(
-                        profile.weightKg?.toStringAsFixed(1) ?? '--',
-                        "Weight",
-                        suffix: " Kg",
-                      ),
-                      _buildVerticalDivider(),
-                      _buildSingleStat(
-                        "${profile.age}",
-                        "Years Old",
-                      ),
-                      _buildVerticalDivider(),
-                      _buildSingleStat(
-                        profile.heightCm?.toStringAsFixed(1) ?? '--',
-                        "Height",
-                        suffix: " CM",
                       ),
                     ],
                   ),
                 ),
-              ),
-
-              SizedBox(height: 30.h),
-
-              // MENU ITEMS
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
-                    _buildMenuItem(
-                      ImageAssets.svg24,
-                      "Profile",
-                          () => Get.to(() => MyProfileEditScreen(), transition: Transition.rightToLeft),
+        
+                SizedBox(height: 20.h),
+        
+                // STATS BOX
+                Center(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                    decoration: BoxDecoration(
+                      color: AppColor.customPurple,
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
-                    _buildMenuItem(
-                      ImageAssets.svg25,
-                      "Favorite",
-                          () => Get.to(() => Favourite(), transition: Transition.rightToLeft),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildSingleStat(
+                          profile.weightKg?.toStringAsFixed(1) ?? '--',
+                          "Weight",
+                          suffix: " Kg",
+                        ),
+                        _buildVerticalDivider(),
+                        _buildSingleStat(
+                          "${profile.age}",
+                          "Years Old",
+                        ),
+                        _buildVerticalDivider(),
+                        _buildSingleStat(
+                          profile.heightCm?.toStringAsFixed(1) ?? '--',
+                          "Height",
+                          suffix: " CM",
+                        ),
+                      ],
                     ),
-                    _buildMenuItem(
-                      ImageAssets.svg26,
-                      "Privacy Policy",
-                          () => Get.to(() => PrivacyPolicyScreen(), transition: Transition.rightToLeft),
-                    ),
-                    _buildMenuItem(
-                      ImageAssets.svg27,
-                      "Settings",
-                          () => Get.to(() => const SettingsScreen(), transition: Transition.rightToLeft),
-                    ),
-                    _buildMenuItem(
-                      ImageAssets.svg28,
-                      "Help",
-                          () => Get.to(() => const HelpAndFaqsPage(), transition: Transition.rightToLeft),
-                    ),
-                    _buildMenuItem(
-                      ImageAssets.svg29,
-                      "Logout",
-                          () => _showLogoutBottomSheet(context),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-      }),
+        
+                SizedBox(height: 30.h),
+        
+                // MENU ITEMS
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildMenuItem(
+                        ImageAssets.svg24,
+                        "Profile",
+                            () => Get.to(() => MyProfileEditScreen(), transition: Transition.rightToLeft),
+                      ),
+
+                      _buildMenuItem(
+                        ImageAssets.svg24,
+                        "Profile",
+                            () => Get.to(() => MyProfileEditScreen(), transition: Transition.rightToLeft),
+                      ),
+                      _buildMenuItem(
+                        ImageAssets.svg25,
+                        "Favorite",
+                            () => Get.to(() => Favourite(), transition: Transition.rightToLeft),
+                      ),
+                      _buildMenuItem(
+                        ImageAssets.svg26,
+                        "Privacy Policy",
+                            () => Get.to(() => PrivacyPolicyScreen(), transition: Transition.rightToLeft),
+                      ),
+                      _buildMenuItem(
+                        ImageAssets.svg27,
+                        "Settings",
+                            () => Get.to(() => const SettingsScreen(), transition: Transition.rightToLeft),
+                      ),
+                      _buildMenuItem(
+                        ImageAssets.svg28,
+                        "Help",
+                            () => Get.to(() => const HelpAndFaqsPage(), transition: Transition.rightToLeft),
+                      ),
+                      _buildMenuItem(
+                        ImageAssets.svg29,
+                        "Logout",
+                            () => _showLogoutBottomSheet(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 
