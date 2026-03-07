@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:242619003718:android:e23a8f55d02eb0002b6b47",
+        "mobilesdk_app_id": "1:242619003718:android:88aeb34efbc3ee902b6b47",
         "android_client_info": {
-          "package_name": "com.example.kenzeno"
+          "package_name": "com.gymgeniusai"
         }
       },
       "oauth_client": [],

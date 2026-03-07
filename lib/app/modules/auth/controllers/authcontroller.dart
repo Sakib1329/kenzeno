@@ -222,7 +222,12 @@ class Authcontroller extends GetxController {
             style: AppTextStyles.workSansRegular.copyWith(color: AppColor.white),
           ),
         );
-await initFCM();
+        try {
+          await initFCM().timeout(Duration(seconds: 5)); // don't block longer than 5s
+        } catch (e) {
+          print("⚠️ FCM init failed or timed out: $e");
+        }
+
         Get.offAll(() => Navbar(), transition: Transition.rightToLeft);
       }
       else {

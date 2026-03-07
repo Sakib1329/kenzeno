@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.kenzeno"
+    namespace = "com.gymgeniusai"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
 
-        applicationId = "com.example.kenzeno"
+        applicationId = "com.gymgeniusai"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

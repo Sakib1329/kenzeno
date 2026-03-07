@@ -11,6 +11,7 @@ import 'package:kenzeno/app/modules/setting/views/helpandfaq.dart';
 import 'package:kenzeno/app/modules/setting/views/privacy_policy.dart';
 import 'package:kenzeno/app/modules/setting/views/profile.dart';
 import 'package:kenzeno/app/modules/setting/views/settings.dart';
+import 'package:kenzeno/app/modules/setting/views/subscription.dart';
 import 'package:kenzeno/app/res/assets/asset.dart';
 import '../../../res/colors/colors.dart';
 import '../../../res/fonts/textstyle.dart';
@@ -191,9 +192,9 @@ class More extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     children: [
                       _buildMenuItem(
-                        ImageAssets.svg24,
-                        "Profile",
-                            () => Get.to(() => MyProfileEditScreen(), transition: Transition.rightToLeft),
+                        ImageAssets.svg71,
+                        "Subscription",
+                            () => Get.to(() => Subscription(), transition: Transition.rightToLeft),
                       ),
 
                       _buildMenuItem(

@@ -15,8 +15,8 @@ import '../controller/subscription_controller.dart';
 import '../widgets/infocard.dart';
 import '../widgets/subscription_card.dart';
 
-class Subscription extends StatelessWidget {
-  Subscription({super.key});
+class sad extends StatelessWidget {
+  sad({super.key});
 
   final SubscriptionController controller = Get.put(SubscriptionController());
 

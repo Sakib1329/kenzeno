@@ -90,6 +90,7 @@ class ImageAssets {
   static const String svg68 = 'assets/icons/svg68.svg';
   static const String svg69 = 'assets/icons/svg69.svg';
   static const String svg70 = 'assets/icons/svg70.svg';
+  static const String svg71 = 'assets/icons/svg71.svg';
 
 
   static const String img = 'assets/images/img.png';
